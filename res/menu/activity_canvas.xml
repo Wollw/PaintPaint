@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/saveMenuItem"
+        android:icon="@android:drawable/ic_menu_save"
+        android:showAsAction="always"
+        android:title="@string/canvasSaveMenuItem" android:onClick="onClickSave"/>
+    <item
+        android:id="@+id/shareMenuItem"
+        android:icon="@android:drawable/ic_menu_share"
+        android:showAsAction="always"
+        android:title="@string/canvasShareMenuItem" android:onClick="onClickShare"/>
+    <item
+        android:id="@+id/brushMenuItem"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:showAsAction="always"
+        android:title="@string/canvasBrushMenuItem"/>
+</menu>

@@ -16,10 +16,7 @@ import android.graphics.Bitmap;
 
 import android.graphics.Bitmap.CompressFormat;
 
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-
-import android.os.Environment;
 
 import android.util.Log;
 

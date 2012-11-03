@@ -2,7 +2,10 @@ package com.alizarinarts.paintpaint;
 
 import java.io.File;
 
-import android.app.Activity;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.app.AlertDialog;
 
 import android.content.DialogInterface;
@@ -14,13 +17,10 @@ import android.os.Environment;
 
 import android.util.Log;
 
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import android.widget.EditText;
 
-public class CanvasActivity extends Activity {
+public class CanvasActivity extends SherlockActivity {
     private Canvas mCanvas;
 
     private String mSavePath;
@@ -49,7 +49,7 @@ public class CanvasActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_canvas, menu);
+        getSupportMenuInflater().inflate(R.menu.activity_canvas, menu);
         return true;
     }
 

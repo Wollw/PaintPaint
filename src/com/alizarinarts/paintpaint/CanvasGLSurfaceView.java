@@ -2,10 +2,7 @@ package com.alizarinarts.paintpaint;
 
 import android.content.Context;
 
-import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
-//import android.util.Log;
 
 import android.view.MotionEvent;
 

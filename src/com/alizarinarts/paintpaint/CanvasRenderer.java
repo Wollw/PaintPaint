@@ -53,7 +53,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     private int[] buffers = new int[1];
 
-    private int mTextureId;
+    //private int mTextureId;
 
     public CanvasRenderer(Context context) {
         resources = context.getResources();
@@ -149,9 +149,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         mZoomHandle = glGetUniformLocation(program, "uZoom");
         glUniform1f(mZoomHandle, mZoom);
-
-        //glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, mVertices);
-        //glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
         glEnableVertexAttribArray(0);

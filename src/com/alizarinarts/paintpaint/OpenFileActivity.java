@@ -1,9 +1,10 @@
 package com.alizarinarts.paintpaint;
 
-import android.os.Bundle;
-import android.app.Activity;
+import com.actionbarsherlock.app.SherlockActivity;
 
-public class OpenFileActivity extends Activity {
+import android.os.Bundle;
+
+public class OpenFileActivity extends SherlockActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

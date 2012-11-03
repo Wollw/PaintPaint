@@ -1,12 +1,13 @@
 package com.alizarinarts.paintpaint;
 
+import com.actionbarsherlock.app.SherlockActivity;
+
 import android.content.Intent;
 
 import android.os.Bundle;
-import android.app.Activity;
 import android.view.View;
 
-public class MainMenuActivity extends Activity {
+public class MainMenuActivity extends SherlockActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

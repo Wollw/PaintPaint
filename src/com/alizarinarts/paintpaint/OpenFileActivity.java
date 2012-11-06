@@ -25,7 +25,7 @@ public class OpenFileActivity extends SherlockActivity {
          * the names of the files that can be opened.
          */
         ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, new String[] {""});
+                android.R.layout.simple_list_item_1, new String[] {"No Files Found!"});
         ListView lv = (ListView) findViewById(R.id.fileList);
         lv.setAdapter(aa);
     }

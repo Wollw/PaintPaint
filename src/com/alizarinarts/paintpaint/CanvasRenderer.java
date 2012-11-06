@@ -1,10 +1,5 @@
 package com.alizarinarts.paintpaint;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -23,8 +18,6 @@ import static android.opengl.GLES20.*;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import android.util.Log;
-
 /**
  * The OpenGL renderer responsible for creating and maintaining the canvas
  * surface.
@@ -36,107 +29,88 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private Resources resources;
     private AssetManager assets;
 
-    private final float[] mVerticesData = {
-        -1.0f, -1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f };
+    private final float[] verticesData = {
+        -1.0f, -1.0f,  0.0f,
+         1.0f, -1.0f,  0.0f,
+        -1.0f,  1.0f,  0.0f,
+         1.0f,  1.0f,  0.0f,
+    };
 
+    private final float[] textureCoordData = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+    };
+
+    CanvasShaderProgram canvasShaderProgram;
     private int programId;
+    private int textureId;
 
     // Uniforms for GLSL programs.
-    private int mProjectionMatrixHandle;
-    private float[] mProjectionMatrix = new float[16];
+    private int projectionMatrixHandle;
+    private float[] projectionMatrix = new float[16];
 
     // Zoom level
-    private int mZoomHandle;
-    private float mZoom = 1f;
+    private int zoomHandle;
+    private float zoom = 1.0f;
 
     // Canvas size
     private int width;
     private int height;
 
-    // OpenGL buffer identifiers
-    private int[] buffers = new int[1];
+    // Shader Attributes
+    private int aVertexPosition;
+    private int aTextureCoord;
 
-    //private int mTextureId;
+    // OpenGL buffer identifiers
+    private int verticesBuffer;
+    private int textureCoordBuffer;
 
     public CanvasRenderer(Context context) {
         resources = context.getResources();
         assets = resources.getAssets();
     }
 
-    /**
-     * Generate a shader from a source file.  Returns the shader's identifier.
-     *
-     * @param fileName The path to the fragment or vertex shader to compile.
-     */
-    private int makeShader(String fileName) {
-        // Read the shader source code
-        String buffer = "";
-        try {
-            InputStream is = assets.open("shaders/" + fileName);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String line = null;
-
-            while ((line = br.readLine()) != null) {
-                buffer += line + "\n";
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Build the shader.
-        int shaderType = 0;
-        if (fileName.endsWith(".vert")) {
-            shaderType = GL_VERTEX_SHADER;
-        } else if (fileName.endsWith(".frag")) {
-            shaderType = GL_FRAGMENT_SHADER;
-        }
-        int shader = glCreateShader(shaderType);
-        glShaderSource(shader, buffer);
-        glCompileShader(shader);
-        return shader;
-    }
-
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
 
-        /* Create the shader program. This shader program code should probably
-         * be abstracted into its own object. */
-        programId = glCreateProgram();
+        // Create the shader program
+        canvasShaderProgram = new CanvasShaderProgram("shader.vert", "shader.frag", assets);
+        programId = canvasShaderProgram.getProgram();
 
-        /* Bind the shaders to the program */
-        int vs = makeShader("shader.vert");
-        int fs = makeShader("shader.frag");
-        glAttachShader(programId, vs);
-        glAttachShader(programId, fs);
-
-        /* Bind attributes to the program */
-        glBindAttribLocation(programId, 0, "vPosition");
-
-        /* Link the program and handle any errors */
-        int linkStatus[] = new int[1];
-        glLinkProgram(programId);
-        glGetProgramiv(programId, GL_LINK_STATUS, linkStatus, 0);
-        if (linkStatus[0] == 0) {
-            Log.e("", "ERROR LINKING");
-            Log.e("", glGetProgramInfoLog(programId));
-            glDeleteProgram(programId);
-            return;
-        }
-
-        /* If all went well, use the program. */
         glUseProgram(programId);
 
-        /* Create canvas Vertex Buffer Object */
-        FloatBuffer mVertices = ByteBuffer.allocateDirect(mVerticesData.length * 4)
+        aVertexPosition = glGetAttribLocation(programId, "aVertexPosition");
+        glEnableVertexAttribArray(aVertexPosition);
+
+        aTextureCoord = glGetAttribLocation(programId, "aTextureCoord");
+        glEnableVertexAttribArray(aTextureCoord);
+
+        /* Send the canvas vertices to the GPU */
+        FloatBuffer vertices = ByteBuffer.allocateDirect(verticesData.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
-        mVertices.put(mVerticesData).position(0);
-        glGenBuffers(1, buffers, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-        glBufferData(GL_ARRAY_BUFFER, mVertices.capacity() * 4, mVertices, GL_STATIC_DRAW);
+        vertices.put(verticesData).position(0);
+        int[] buffer = new int[1];
+        glGenBuffers(1, buffer, 0);
+        verticesBuffer = buffer[0];
+        glBindBuffer(GL_ARRAY_BUFFER, verticesBuffer);
+        glBufferData(GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        /* Send Texture Coordinate data to the GPU */
+        FloatBuffer textureCoords = ByteBuffer.allocateDirect(textureCoordData.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        textureCoords.put(textureCoordData).position(0);
+        glGenBuffers(1, buffer, 0);
+        textureCoordBuffer = buffer[0];
+        glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
+        glBufferData(GL_ARRAY_BUFFER, textureCoords.capacity() * 4, textureCoords, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        /* Load Texture */
+        textureId = loadTexture();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -148,27 +122,27 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         // Update graphics, bind resources, and render (steps 6,7)
         glClear(GL_COLOR_BUFFER_BIT);
 
-
         // Camera Matrix Setup
-        mProjectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
-        glUniformMatrix4fv(mProjectionMatrixHandle, 1, false,
-                mProjectionMatrix, 0);
-
-        mZoomHandle = glGetUniformLocation(programId, "uZoom");
-        glUniform1f(mZoomHandle, mZoom);
-
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+        projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
+        glUniformMatrix4fv(projectionMatrixHandle, 1, false,
+                projectionMatrix, 0);
+        zoomHandle = glGetUniformLocation(programId, "uZoom");
+        glUniform1f(zoomHandle, zoom);
 
         /* Texture related stuff I don't have working yet. */
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, mTextureId);
-        //glUniform1i(glGetUniformLocation(program, "uTexture"), 0);
-        //glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        //glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        //glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-        //glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
+
+        // Enable the vertex buffer
+        glBindBuffer(GL_ARRAY_BUFFER, verticesBuffer);
+        glEnableVertexAttribArray(aVertexPosition);
+        glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
+
+        // Enable the texture
+        glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
+        glEnableVertexAttribArray(aTextureCoord);
+        glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
@@ -182,13 +156,11 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         //Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1-aspectRatio, 1+aspectRatio, -1, 1);
         //Matrix.orthoM(mProjectionMatrix, 0, -1.0f, 1.0f, -aspectRatio, aspectRatio, -1f, 1f);
 
-        Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
+        Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
 
         this.width = width;
         this.height = height;
 
-        /* Load Texture */
-        //mTextureId = loadTexture();
     }
 
     /*
@@ -197,16 +169,16 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      */
     public int loadTexture() {
 
+
+        int size_x = 4;
+        int size_y = 4;
         int[] textureId = new int[1];
-        ByteBuffer bb = ByteBuffer.allocateDirect(width*height*4);
+        ByteBuffer bb = ByteBuffer.allocateDirect(size_x*size_y*4);
         IntBuffer  ib = bb.asIntBuffer();
 
-        /* Create a checkboard texture */
-        for (int i = 0; i < width*height; i++) {
-            if (i % 2 == 0)
-                ib.put(0xffffffff); // Black
-            else 
-                ib.put(0x000000ff); // White
+        int color = 0x0000ffff;
+        for (int i = 0; i < size_x * size_y; i++) {
+            ib.put(color += 1024*4);
         }
 
         // Create and bind a single texture object.
@@ -214,7 +186,12 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindTexture(GL_TEXTURE_2D, textureId[0]);
 
         // Copy the texture to the GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bb);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bb);
+        
+        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         return textureId[0];
     }
@@ -255,14 +232,17 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      */
     public void editTexture(int x, int y) {
         /*
+        int[] color = new int[1];
+        IntBuffer ib = IntBuffer.wrap(color);
         ib.put(0x00FFFFFF);
-        glBindTexture(GL_TEXTURE_2D, mTextureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
         glTexSubImage2D(GL_TEXTURE_2D, 0,
                 x, y,
                 1, 1, // width and height
                 GL_RGBA, GL_UNSIGNED_BYTE,
-                bb);*/
+                ib);
 
+                */
     }
 
 }

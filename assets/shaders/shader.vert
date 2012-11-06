@@ -1,22 +1,17 @@
-
-// Hook to manipulate the coordinates of objects
-// that use this vertex shader
 uniform mat4 uProjMatrix;
-
-// Texture Coordinates
-attribute vec2 aTextureCoord;
-varying   vec2 vTextureCoord;
-
 uniform float uZoom;
 
-attribute vec4 vPosition;
+attribute vec2 aTextureCoord;
+attribute vec4 aVertexPosition;
+
+varying vec2 vTextureCoord;
 
 void main() {
-    gl_Position = vPosition * uProjMatrix
-                  * mat4(1.0/uZoom,0,0,0,
-                         0,1.0/uZoom,0,0,
+	float s = 1.0/uZoom;
+    gl_Position = aVertexPosition * uProjMatrix
+                  * mat4(s,0,0,0,
+                         0,s,0,0,
                          0,0,1,0,
                          0,0,0,1);
-    //gl_Position = vPosition;
-    //vTextureCoord = gl_MultiTexCoord0;
+    vTextureCoord = aTextureCoord;
 }

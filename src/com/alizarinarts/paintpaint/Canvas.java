@@ -21,15 +21,21 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 /**
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
- * @version 1.0
+ * This class represents the drawing aspects of the CanvasActivity and serves to
+ * keep the layout of the class and menus separate from the drawing function.
  * 
+ * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
 public class Canvas {
 
     CanvasGLSurfaceView mSurfaceView;
     CanvasRenderer mRenderer;
 
+    /**
+     * This constructor attempts to setup an OpenGL ES 2.0 SurfaceView and
+     * Renderer.  If it fails the program quits.  That should never happen
+     * as the minimum API level includes OpenGL ES 2.0.
+     */
     public Canvas(Context context) {
         Activity a = (Activity) context;
         ActivityManager am = (ActivityManager) a.getSystemService(Context.ACTIVITY_SERVICE);
@@ -56,9 +62,12 @@ public class Canvas {
     }
 
     /**
-     * Capture the canvas as a PNG.
+     * Save the canvas to storage as an image.  For now it only saves as PNG.
+     *
+     * @param saveDir The directory to save the file in.
+     * @param fileName The name to save the canvas as.
      */
-    public void saveCanvasPNG(String saveDir, String fileName) {
+    public void saveCanvas(String saveDir, String fileName) {
         if (mRenderer == null) {
             Log.d("", "Renderer is null!");
             return;
@@ -85,4 +94,5 @@ public class Canvas {
             e.printStackTrace();
         }
     }
+
 }

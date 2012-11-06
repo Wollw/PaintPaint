@@ -7,20 +7,15 @@ import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 
 /**
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
- * @version 1.0
- *
  * Custom GLSurfaceView to allow touch events.  Based on example from:
  * http://android-developers.blogspot.com/2009/04/introducing-glsurfaceview.html
  * 
+ * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
 public class CanvasGLSurfaceView extends GLSurfaceView {
 
     CanvasRenderer mRenderer;
 
-    /**
-     * @param context
-     */
     public CanvasGLSurfaceView(Context context) {
         super(context);
         setEGLContextClientVersion(2);
@@ -28,9 +23,6 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
         setRenderer(mRenderer);
     }
 
-    /**
-     *
-     */
     public boolean onTouchEvent(final MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:

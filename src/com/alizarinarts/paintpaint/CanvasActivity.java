@@ -17,12 +17,17 @@ import android.os.Environment;
 
 import android.util.Log;
 
-
 import android.widget.EditText;
 
+/**
+ * This is the main activity of this program. It presents the user with a
+ * canvas to draw on and allows the user to share or save their image.
+ *
+ * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ */
 public class CanvasActivity extends SherlockActivity {
-    private Canvas mCanvas;
 
+    private Canvas mCanvas;
     private String mSavePath;
 
     @Override
@@ -61,7 +66,7 @@ public class CanvasActivity extends SherlockActivity {
      */
     public void onClickShare(MenuItem mi) {
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvasPNG(mSavePath,".tmp.png");
+            mCanvas.saveCanvas(mSavePath,".tmp.png");
             File file = new File(mSavePath+".tmp.png");
             Intent intent = new Intent(android.content.Intent.ACTION_SEND);
             intent.setType("image/png");
@@ -90,7 +95,7 @@ public class CanvasActivity extends SherlockActivity {
                     final String fileName = input.getText().toString();
                     Log.d("","saving: "+fileName);
                     mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-                        mCanvas.saveCanvasPNG(mSavePath, fileName+".png");
+                        mCanvas.saveCanvas(mSavePath, fileName);
                     }});
                 }
         });

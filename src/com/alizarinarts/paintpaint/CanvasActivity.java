@@ -2,6 +2,7 @@ package com.alizarinarts.paintpaint;
 
 import java.io.File;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -27,15 +28,23 @@ import android.widget.EditText;
  */
 public class CanvasActivity extends SherlockActivity {
 
+    /** The representation of the drawing surface. */
     private Canvas mCanvas;
+
+    /** The save path for image saving. */
     private String mSavePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mCanvas = new Canvas(this); 
         mSavePath = Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name) + "/";
-        Log.d("",mSavePath);
+
+        // Enable the ActionBar icon as Up button.
+        ActionBar ab = getSupportActionBar();
+        ab.setHomeButtonEnabled(true);
+        ab.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -108,6 +117,19 @@ public class CanvasActivity extends SherlockActivity {
 
         alert.show();
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem mi) {
+        switch (mi.getItemId()) {
+        // Handle the Up action from ActionBar icon clicks.
+        case android.R.id.home:
+            Intent i = new Intent(this, MainMenuActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+            return true;
+        }
+        return false;
     }
 
 }

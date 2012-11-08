@@ -1,6 +1,11 @@
 package com.alizarinarts.paintpaint;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
+
+import com.actionbarsherlock.view.MenuItem;
+
+import android.content.Intent;
 
 import android.os.Bundle;
 
@@ -20,6 +25,10 @@ public class OpenFileActivity extends SherlockActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_file);
 
+        ActionBar ab = getSupportActionBar();
+        ab.setHomeButtonEnabled(true);
+        ab.setDisplayHomeAsUpEnabled(true);
+
         /*
          * Placeholder for now.  This should populate the ListView with
          * the names of the files that can be opened.
@@ -28,6 +37,19 @@ public class OpenFileActivity extends SherlockActivity {
                 android.R.layout.simple_list_item_1, new String[] {"No Files Found!"});
         ListView lv = (ListView) findViewById(R.id.fileList);
         lv.setAdapter(aa);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem mi) {
+        switch (mi.getItemId()) {
+        // Handle the Up action from ActionBar icon clicks.
+        case android.R.id.home:
+            Intent i = new Intent(this, MainMenuActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+            return true;
+        }
+        return false;
     }
 
 }

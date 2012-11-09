@@ -18,6 +18,8 @@ import static android.opengl.GLES20.*;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import android.util.Log;
+
 /**
  * The OpenGL renderer responsible for creating and maintaining the canvas
  * surface.
@@ -171,7 +173,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
 
         int size_x = 1024;
-        int size_y = 1024;
+        int size_y = 2048;
         int[] textureId = new int[1];
         ByteBuffer bb = ByteBuffer.allocateDirect(size_x*size_y*4);
         IntBuffer  ib = bb.asIntBuffer();
@@ -231,16 +233,29 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      * @param x The X coordinate
      * @param y The y coordinate
      */
-    public void editTexture(int x, int y) {
-        int[] color = new int[10*10];
-        IntBuffer ib = IntBuffer.wrap(color);
-        for (int i = 0; i < 10*10; i++) {
+    private float lastX;
+    private float lastY;
+    private float brushMax = 100;
+    public void editTexture(int x, int y, float p, boolean newEvent) {
+        if (!newEvent && ((Math.abs(lastX - x) > 100) || (Math.abs(lastY - y) > 100)))
+            return;
+        else
+            lastX = x;
+            lastY = y;
+        Log.d("", ""+lastX+","+lastY+" "+newEvent);
+        x = (int)(((float)x/width) * 1024);
+        y = (int)(((float)y/height) * 2048);
+
+        int bufSize = (int)(p*brushMax)*(int)(p*brushMax);
+        int[] buf = new int[bufSize];
+        IntBuffer ib = IntBuffer.wrap(buf);
+        for (int i = 0; i < bufSize; i++) {
             ib.put(0xFF000000);
         }
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexSubImage2D(GL_TEXTURE_2D, 0,
-                x, height-y,
-                10, 10, // width and height
+                x, 2048-y,
+                (int)(p*brushMax), (int)(p*brushMax), // width and height
                 GL_RGBA, GL_UNSIGNED_BYTE,
                 ib);
 

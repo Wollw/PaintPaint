@@ -170,15 +170,16 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     public int loadTexture() {
 
 
-        int size_x = 4;
-        int size_y = 4;
+        int size_x = 1024;
+        int size_y = 1024;
         int[] textureId = new int[1];
         ByteBuffer bb = ByteBuffer.allocateDirect(size_x*size_y*4);
         IntBuffer  ib = bb.asIntBuffer();
 
-        int color = 0x0000ffff;
+        //int color = 0x0000ffff;
         for (int i = 0; i < size_x * size_y; i++) {
-            ib.put(color += 1024*4);
+            //ib.put(color += 1024*4);
+            ib.put(0xffffffff);
         }
 
         // Create and bind a single texture object.
@@ -231,18 +232,18 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      * @param y The y coordinate
      */
     public void editTexture(int x, int y) {
-        /*
-        int[] color = new int[1];
+        int[] color = new int[10*10];
         IntBuffer ib = IntBuffer.wrap(color);
-        ib.put(0x00FFFFFF);
+        for (int i = 0; i < 10*10; i++) {
+            ib.put(0xFF000000);
+        }
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexSubImage2D(GL_TEXTURE_2D, 0,
-                x, y,
-                1, 1, // width and height
+                x, height-y,
+                10, 10, // width and height
                 GL_RGBA, GL_UNSIGNED_BYTE,
                 ib);
 
-                */
     }
 
 }

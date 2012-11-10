@@ -5,6 +5,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -18,8 +21,6 @@ import static android.opengl.GLES20.*;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import android.util.Log;
-
 /**
  * The OpenGL renderer responsible for creating and maintaining the canvas
  * surface.
@@ -32,10 +33,10 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private AssetManager assets;
 
     private final float[] verticesData = {
-        -1.0f, -1.0f,  0.0f,
-         1.0f, -1.0f,  0.0f,
-        -1.0f,  1.0f,  0.0f,
-         1.0f,  1.0f,  0.0f,
+        -.05f, -.05f,  0.0f,
+         .05f, -.05f,  0.0f,
+        -.05f,  .05f,  0.0f,
+         .05f,  .05f,  0.0f,
     };
 
     private final float[] textureCoordData = {
@@ -55,7 +56,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     // Zoom level
     private int zoomHandle;
-    private float zoom = 1.0f;
+    private float zoom = 1f;
 
     // Canvas size
     private int width;
@@ -65,9 +66,14 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private int aVertexPosition;
     private int aTextureCoord;
 
+    private int uOffset;
+
     // OpenGL buffer identifiers
     private int verticesBuffer;
     private int textureCoordBuffer;
+
+    // The draw queue for brush events.
+    Queue<CanvasDab> drawQueue = new LinkedList<CanvasDab>();
 
     public CanvasRenderer(Context context) {
         resources = context.getResources();
@@ -114,7 +120,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         /* Load Texture */
         textureId = loadTexture();
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glEnable(GL_CULL_FACE);
 
@@ -122,7 +129,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     public void onDrawFrame(GL10 glUnused) {
         // Update graphics, bind resources, and render (steps 6,7)
-        glClear(GL_COLOR_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT);
 
         // Camera Matrix Setup
         projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
@@ -131,7 +138,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         zoomHandle = glGetUniformLocation(programId, "uZoom");
         glUniform1f(zoomHandle, zoom);
 
-        /* Texture related stuff I don't have working yet. */
+        // Enable the texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
@@ -141,12 +148,28 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glEnableVertexAttribArray(aVertexPosition);
         glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
 
-        // Enable the texture
-        glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
-        glEnableVertexAttribArray(aTextureCoord);
-        glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
+            glUniform2f(glGetUniformLocation(programId, "uOffset"), 0, 0);
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            // Enable the texture
+            glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
+            glEnableVertexAttribArray(aTextureCoord);
+            glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
+
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        while (!drawQueue.isEmpty()) {
+            CanvasDab dab = drawQueue.poll();
+            // Set the offset
+            glUniform2f(glGetUniformLocation(programId, "uOffset"), dab.getX(), dab.getY());
+
+            // Enable the texture
+            glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
+            glEnableVertexAttribArray(aTextureCoord);
+            glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
+
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+
     }
 
     public void onSurfaceChanged(GL10 glUnused, int width, int height) {
@@ -154,14 +177,15 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glViewport(0, 0, width, height);
 
         /* These lines would create an aspect ratio correct square. */
-        //float aspectRatio = (float) height / width;
-        //Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1-aspectRatio, 1+aspectRatio, -1, 1);
-        //Matrix.orthoM(mProjectionMatrix, 0, -1.0f, 1.0f, -aspectRatio, aspectRatio, -1f, 1f);
+        float aspectRatio = (float) height / width;
+        //Matrix.orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1-aspectRatio, 1+aspectRatio, -1, 1);
+        Matrix.orthoM(projectionMatrix, 0, -1.0f, 1.0f, -aspectRatio, aspectRatio, -1f, 1f);
 
-        Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
+        //Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
 
         this.width = width;
         this.height = height;
+
 
     }
 
@@ -170,18 +194,15 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      * Just for testing purposes for now. Returns the texture's identifier.
      */
     public int loadTexture() {
-
-
-        int size_x = 1024;
-        int size_y = 2048;
+        int size_x = 32;
+        int size_y = 32;
         int[] textureId = new int[1];
         ByteBuffer bb = ByteBuffer.allocateDirect(size_x*size_y*4);
         IntBuffer  ib = bb.asIntBuffer();
 
         //int color = 0x0000ffff;
         for (int i = 0; i < size_x * size_y; i++) {
-            //ib.put(color += 1024*4);
-            ib.put(0xffffffff);
+            ib.put(0x000000ff);
         }
 
         // Create and bind a single texture object.
@@ -226,39 +247,17 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Change the texture at x, y
-     *
-     * based on code from http://stackoverflow.com/questions/1152683/how-to-change-single-texel-in-opengl-texture
+     * Add a new brush dab to the draw queue.
      *
      * @param x The X coordinate
      * @param y The y coordinate
+     * @param p The pressure of the dab
      */
-    private float lastX;
-    private float lastY;
-    private float brushMax = 100;
-    public void editTexture(int x, int y, float p, boolean newEvent) {
-        if (!newEvent && ((Math.abs(lastX - x) > 100) || (Math.abs(lastY - y) > 100)))
-            return;
-        else
-            lastX = x;
-            lastY = y;
-        Log.d("", ""+lastX+","+lastY+" "+newEvent);
-        x = (int)(((float)x/width) * 1024);
-        y = (int)(((float)y/height) * 2048);
+    public void addCanvasDab(int x, int y, float p, boolean newEvent) {
+        float offsetX = ((float)x - (width / 2))/width*2;
+        float offsetY = -((float)y - (height / 2))/height*2;
 
-        int bufSize = (int)(p*brushMax)*(int)(p*brushMax);
-        int[] buf = new int[bufSize];
-        IntBuffer ib = IntBuffer.wrap(buf);
-        for (int i = 0; i < bufSize; i++) {
-            ib.put(0xFF000000);
-        }
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexSubImage2D(GL_TEXTURE_2D, 0,
-                x, 2048-y,
-                (int)(p*brushMax), (int)(p*brushMax), // width and height
-                GL_RGBA, GL_UNSIGNED_BYTE,
-                ib);
-
+        drawQueue.offer(new CanvasDab(offsetX, offsetY, p));
     }
 
 }

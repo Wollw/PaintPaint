@@ -44,7 +44,7 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
                 //if ( Math.abs(lastTouchX - event.getX()) < 50 &&
                      //Math.abs(lastTouchY - event.getY()) < 50) {
                     queueEvent(new Runnable() {public void run() {
-                        mRenderer.editTexture((int)event.getX(i), (int)event.getY(i)-pos[1], event.getPressure(), newEventFinal);
+                        mRenderer.addCanvasDab((int)event.getX(i), (int)event.getY(i)-pos[1], event.getPressure(), newEventFinal);
                     }});
                  //   lastTouchX = event.getX();
                   //  lastTouchY = event.getY();

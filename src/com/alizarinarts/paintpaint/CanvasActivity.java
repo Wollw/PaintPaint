@@ -102,7 +102,7 @@ public class CanvasActivity extends SherlockActivity {
         alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     final String fileName = input.getText().toString();
-                    Log.d("","saving: "+fileName);
+                    Log.d(PaintPaint.NAME,"saving: "+fileName);
                     mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
                         mCanvas.saveCanvas(mSavePath, fileName);
                     }});

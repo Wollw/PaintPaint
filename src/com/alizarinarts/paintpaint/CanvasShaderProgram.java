@@ -38,8 +38,8 @@ public class CanvasShaderProgram {
         glLinkProgram(program);
         glGetProgramiv(program, GL_LINK_STATUS, linkStatus, 0);
         if (linkStatus[0] == 0) {
-            Log.e("", "ERROR LINKING");
-            Log.e("", glGetProgramInfoLog(program));
+            Log.e(PaintPaint.NAME, "ERROR LINKING");
+            Log.e(PaintPaint.NAME, glGetProgramInfoLog(program));
             glDeleteProgram(program);
             return;
         }

@@ -69,7 +69,7 @@ public class Canvas {
      */
     public void saveCanvas(String saveDir, String fileName) {
         if (mRenderer == null) {
-            Log.d("", "Renderer is null!");
+            Log.d(PaintPaint.NAME, "Renderer is null!");
             return;
         }
         Bitmap b = mRenderer.getCanvasBitmap();

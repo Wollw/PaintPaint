@@ -21,6 +21,8 @@ import static android.opengl.GLES20.*;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import android.util.Log;
+
 /**
  * The OpenGL renderer responsible for creating and maintaining the canvas
  * surface.
@@ -66,11 +68,14 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private int aVertexPosition;
     private int aTextureCoord;
 
-    private int uOffset;
+    //private int uOffset;
 
     // OpenGL buffer identifiers
     private int verticesBuffer;
     private int textureCoordBuffer;
+
+    private int framebuffer;
+    private int renderbuffer;
 
     // The draw queue for brush events.
     Queue<CanvasDab> drawQueue = new LinkedList<CanvasDab>();
@@ -120,16 +125,20 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         /* Load Texture */
         textureId = loadTexture();
 
-        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glEnable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
 
     }
 
     public void onDrawFrame(GL10 glUnused) {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         // Update graphics, bind resources, and render (steps 6,7)
-        //glClear(GL_COLOR_BUFFER_BIT);
+
 
         // Camera Matrix Setup
         projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
@@ -148,15 +157,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glEnableVertexAttribArray(aVertexPosition);
         glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
 
-            glUniform2f(glGetUniformLocation(programId, "uOffset"), 0, 0);
-
-            // Enable the texture
-            glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
-            glEnableVertexAttribArray(aTextureCoord);
-            glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
-
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
         while (!drawQueue.isEmpty()) {
             CanvasDab dab = drawQueue.poll();
             // Set the offset
@@ -170,6 +170,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
 
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     public void onSurfaceChanged(GL10 glUnused, int width, int height) {
@@ -183,9 +184,46 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         //Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
 
+        /* Create framebuffer 
+         * Reference: http://www.songho.ca/opengl/gl_fbo.html
+         * Reference: http://www.opengl.org/wiki/GLAPI/glFramebufferRenderbuffer
+         * */
+        int[] buffer = new int[1];
+        glGenRenderbuffers(1, buffer, 0);
+        renderbuffer = buffer[0];
+        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, width, height);
+
+        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, IntBuffer.wrap(buffer));
+        Log.d(PaintPaint.NAME, "Width: "+buffer[0]);
+        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, IntBuffer.wrap(buffer));
+        Log.d(PaintPaint.NAME, "Height: "+buffer[0]);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        glGenFramebuffers(1, buffer, 0);
+        framebuffer = buffer[0];
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        switch(glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            Log.d(PaintPaint.NAME,"The fbo is complete");
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            Log.d(PaintPaint.NAME,"GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            Log.d(PaintPaint.NAME,"GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+            break;   
+        case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+            Log.d(PaintPaint.NAME,"GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+            break;
+        }
+        
         this.width = width;
         this.height = height;
-
 
     }
 

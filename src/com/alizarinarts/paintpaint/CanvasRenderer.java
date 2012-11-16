@@ -67,7 +67,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     // Zoom level
     private int zoomHandle;
-    private float zoom = 1f;
+    private float brushZoom = 2.0f;
+    private float canvasZoom = 1.0f;
 
     // Canvas size
     private int width;
@@ -149,15 +150,13 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        // Update graphics, bind resources, and render (steps 6,7)
-
 
         // Camera Matrix Setup
         projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
         glUniformMatrix4fv(projectionMatrixHandle, 1, false,
                 projectionMatrix, 0);
         zoomHandle = glGetUniformLocation(programId, "uZoom");
-        glUniform1f(zoomHandle, zoom);
+        glUniform1f(zoomHandle, brushZoom);
 
         // Enable the texture
         glActiveTexture(GL_TEXTURE0);
@@ -188,6 +187,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         /* Draw Canvas */
 
+        // Set canvas zoom level
+        glUniform1f(zoomHandle, canvasZoom);
         // Enable the texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, canvasTextureId);

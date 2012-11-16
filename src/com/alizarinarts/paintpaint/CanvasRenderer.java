@@ -34,11 +34,18 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private Resources resources;
     private AssetManager assets;
 
-    private final float[] verticesData = {
+    private final float[] brushVerticesData = {
         -.05f, -.05f,  0.0f,
          .05f, -.05f,  0.0f,
         -.05f,  .05f,  0.0f,
          .05f,  .05f,  0.0f,
+    };
+
+    private final float[] canvasVerticesData = {
+        -1.0f, -1.0f,  0.0f,
+         1.0f, -1.0f,  0.0f,
+        -1.0f,  1.0f,  0.0f,
+         1.0f,  1.0f,  0.0f,
     };
 
     private final float[] textureCoordData = {
@@ -50,7 +57,9 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     CanvasShaderProgram canvasShaderProgram;
     private int programId;
-    private int textureId;
+
+    private int brushTextureId;
+    private int canvasTextureId;
 
     // Uniforms for GLSL programs.
     private int projectionMatrixHandle;
@@ -71,11 +80,11 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     //private int uOffset;
 
     // OpenGL buffer identifiers
-    private int verticesBuffer;
+    private int canvasVerticesBuffer;
+    private int brushVerticesBuffer;
     private int textureCoordBuffer;
 
     private int framebuffer;
-    private int renderbuffer;
 
     // The draw queue for brush events.
     Queue<CanvasDab> drawQueue = new LinkedList<CanvasDab>();
@@ -99,15 +108,15 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         aTextureCoord = glGetAttribLocation(programId, "aTextureCoord");
         glEnableVertexAttribArray(aTextureCoord);
 
-        /* Send the canvas vertices to the GPU */
-        FloatBuffer vertices = ByteBuffer.allocateDirect(verticesData.length * 4)
+        /* Send the brush vertices to the GPU */
+        FloatBuffer vertices = ByteBuffer.allocateDirect(brushVerticesData.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
-        vertices.put(verticesData).position(0);
+        vertices.put(brushVerticesData).position(0);
         int[] buffer = new int[1];
         glGenBuffers(1, buffer, 0);
-        verticesBuffer = buffer[0];
-        glBindBuffer(GL_ARRAY_BUFFER, verticesBuffer);
+        brushVerticesBuffer = buffer[0];
+        glBindBuffer(GL_ARRAY_BUFFER, brushVerticesBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -122,11 +131,14 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBufferData(GL_ARRAY_BUFFER, textureCoords.capacity() * 4, textureCoords, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        /* Load Texture */
-        textureId = loadTexture();
+        /* Load Textures */
+        brushTextureId = makeTexture(1, 1, 0x000000ff);
+        canvasTextureId = makeTexture(
+                PaintPaint.TEXTURE_SIZE,
+                PaintPaint.TEXTURE_SIZE,
+                0xffffffff);
 
-
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -136,7 +148,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 glUnused) {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         // Update graphics, bind resources, and render (steps 6,7)
 
 
@@ -149,11 +161,11 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         // Enable the texture
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        glBindTexture(GL_TEXTURE_2D, brushTextureId);
         glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
 
         // Enable the vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, verticesBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, brushVerticesBuffer);
         glEnableVertexAttribArray(aVertexPosition);
         glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
 
@@ -170,7 +182,35 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
 
-        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        /* Draw Canvas */
+
+        // Enable the texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, canvasTextureId);
+        glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
+
+        // Enable the vertex buffer
+        glBindBuffer(GL_ARRAY_BUFFER, canvasVerticesBuffer);
+        glEnableVertexAttribArray(aVertexPosition);
+        glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
+
+        // Set the offset
+        glUniform2f(glGetUniformLocation(programId, "uOffset"), 0, 0);
+
+        // Enable the texture
+        glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
+        glEnableVertexAttribArray(aTextureCoord);
+        glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     }
 
     public void onSurfaceChanged(GL10 glUnused, int width, int height) {
@@ -184,27 +224,34 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         //Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
 
+        /* Send the canvas vertices to the GPU */
+        FloatBuffer vertices = ByteBuffer.allocateDirect(canvasVerticesData.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        float l = 2f*PaintPaint.TEXTURE_SIZE/width;
+        float h = 2f*PaintPaint.TEXTURE_SIZE*aspectRatio/height;
+        vertices.put(new float[]{
+                -1.0f,       -aspectRatio,        0f,
+                l-1,         -aspectRatio,        0f,
+                -1.0f,       h-aspectRatio, 0f,
+                l-1,         h-aspectRatio, 0f})
+            .position(0);
+        int[] buffer = new int[1];
+        glGenBuffers(1, buffer, 0);
+        canvasVerticesBuffer = buffer[0];
+        glBindBuffer(GL_ARRAY_BUFFER, canvasVerticesBuffer);
+        glBufferData(GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
         /* Create framebuffer 
          * Reference: http://www.songho.ca/opengl/gl_fbo.html
          * Reference: http://www.opengl.org/wiki/GLAPI/glFramebufferRenderbuffer
          * */
-        int[] buffer = new int[1];
-        glGenRenderbuffers(1, buffer, 0);
-        renderbuffer = buffer[0];
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, width, height);
-
-        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, IntBuffer.wrap(buffer));
-        Log.d(PaintPaint.NAME, "Width: "+buffer[0]);
-        glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, IntBuffer.wrap(buffer));
-        Log.d(PaintPaint.NAME, "Height: "+buffer[0]);
-
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
         glGenFramebuffers(1, buffer, 0);
         framebuffer = buffer[0];
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, canvasTextureId, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         switch(glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
@@ -230,32 +277,37 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     /*
      * Create an OpenGL texture and load it onto the GPU
      * Just for testing purposes for now. Returns the texture's identifier.
+     *
+     * x and y must be powers of 2
+     *
+     * @param x the width of the texture
+     * @param y the height of the texture
+     * @param color the color value
      */
-    public int loadTexture() {
-        int size_x = 32;
-        int size_y = 32;
-        int[] textureId = new int[1];
-        ByteBuffer bb = ByteBuffer.allocateDirect(size_x*size_y*4);
+    public int makeTexture(int x, int y, int color) {
+        int[] tid = new int[1];
+        ByteBuffer bb = ByteBuffer.allocateDirect(x*y*4);
         IntBuffer  ib = bb.asIntBuffer();
 
         //int color = 0x0000ffff;
-        for (int i = 0; i < size_x * size_y; i++) {
-            ib.put(0x000000ff);
+        for (int i = 0; i < x * y; i++) {
+            ib.put(color);
         }
 
         // Create and bind a single texture object.
-        glGenTextures(1, textureId, 0);
-        glBindTexture(GL_TEXTURE_2D, textureId[0]);
+        glGenTextures(1, tid, 0);
+        glBindTexture(GL_TEXTURE_2D, tid[0]);
 
         // Copy the texture to the GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bb);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bb);
         
-        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+        // Unbind texture
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        return textureId[0];
+        return tid[0];
     }
 
     /**

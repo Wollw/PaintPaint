@@ -124,8 +124,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         /* Create the brush */
         brush = new CanvasBrush(programId);
-        brush.setColor(0x00000033);
-        brush.setSize(0.5f);
+        brush.setColor(0xff0000ff);
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);

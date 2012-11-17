@@ -133,12 +133,11 @@ public class CanvasActivity extends SherlockActivity {
         final SeekBar sb = new SeekBar(this);
         sb.setMax(100);
         float size = mCanvas.getBrush().getSize();
-        Log.d(PaintPaint.NAME, "size: "+size);
         sb.setProgress((int)size);
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Save Image");
-        alert.setMessage("Name");
+        alert.setTitle("Brush Settings");
+        alert.setMessage("Size");
 
         alert.setView(sb);
         alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {

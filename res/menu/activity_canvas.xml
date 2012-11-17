@@ -13,5 +13,5 @@
         android:id="@+id/brushMenuItem"
         android:icon="@android:drawable/ic_menu_preferences"
         android:showAsAction="always"
-        android:title="@string/canvasBrushMenuItem"/>
+        android:title="@string/canvasBrushMenuItem" android:onClick="onClickBrushSettings"/>
 </menu>

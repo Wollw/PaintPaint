@@ -11,4 +11,8 @@
     <string name="canvasSaveMenuItem">Save</string>
 	<string name="canvasShareMenuItem">Share</string>
 	<string name="canvasBrushMenuItem">Brush Settings</string>
+	<string name="ok">Done</string>
+	<string name="cancel">Cancel</string>
+	<string name="brush_settings_title">Brush Settings</string>
+	<string name="brush_size">Brush Size</string>
 </resources>

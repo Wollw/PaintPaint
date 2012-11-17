@@ -16,6 +16,8 @@ import static android.opengl.GLES20.*;
  */
 public class CanvasBrush {
 
+    private static final int BRUSH_PIXEL_SIZE = 32;
+
     private int textureId;
     private int textureCoordBufferId;
     private int vertexBufferId;
@@ -108,5 +110,23 @@ public class CanvasBrush {
         }
 
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public float getSize() {
+        return size * 50f;
+    }
+
+    public void setSize(float size) {
+        this.size = size / 50f;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        glDeleteTextures(1, new int[] { textureId }, 0);
+        textureId = CanvasUtils.makeTexture(BRUSH_PIXEL_SIZE, BRUSH_PIXEL_SIZE, color);
+        this.color = color;
     }
 }

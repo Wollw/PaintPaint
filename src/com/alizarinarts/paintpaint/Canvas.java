@@ -95,4 +95,8 @@ public class Canvas {
         }
     }
 
+    public CanvasBrush getBrush() {
+        return mRenderer.getBrush();
+    }
+
 }

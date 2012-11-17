@@ -124,6 +124,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         /* Create the brush */
         brush = new CanvasBrush(programId);
+        brush.setColor(0x00000033);
+        brush.setSize(0.5f);
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -275,4 +277,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         drawQueue.offer(new CanvasDab(offsetX, offsetY, p));
     }
 
+    public CanvasBrush getBrush() {
+        return brush;
+    }
 }

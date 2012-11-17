@@ -12,13 +12,17 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 
 import android.util.Log;
 
+
 import android.widget.EditText;
+
+import android.widget.SeekBar;
 
 /**
  * This is the main activity of this program. It presents the user with a
@@ -119,15 +123,50 @@ public class CanvasActivity extends SherlockActivity {
 
     }
 
+    /**
+     * Opens the settings window for the brush.
+     */
+    public void onClickBrushSettings(MenuItem mi) {
+        if (mCanvas.getBrush() == null)
+            return;
+        // Setup the EditText view for our save dialog
+        final SeekBar sb = new SeekBar(this);
+        sb.setMax(100);
+        float size = mCanvas.getBrush().getSize();
+        Log.d(PaintPaint.NAME, "size: "+size);
+        sb.setProgress((int)size);
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Save Image");
+        alert.setMessage("Name");
+
+        alert.setView(sb);
+        alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    final float size = sb.getProgress();
+                    mCanvas.getBrush().setSize(size);
+                }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled
+            }
+        });
+
+        alert.show();
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem mi) {
         switch (mi.getItemId()) {
-        // Handle the Up action from ActionBar icon clicks.
-        case android.R.id.home:
-            Intent i = new Intent(this, MainMenuActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(i);
-            return true;
+            // Handle the Up action from ActionBar icon clicks.
+            case android.R.id.home:
+                Intent i = new Intent(this, MainMenuActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
         }
         return false;
     }

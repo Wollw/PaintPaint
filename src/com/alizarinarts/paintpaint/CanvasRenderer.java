@@ -34,13 +34,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private Resources resources;
     private AssetManager assets;
 
-    private final float[] brushVerticesData = {
-        -.05f, -.05f,  0.0f,
-         .05f, -.05f,  0.0f,
-        -.05f,  .05f,  0.0f,
-         .05f,  .05f,  0.0f,
-    };
-
     private final float[] canvasVerticesData = {
         -1.0f, -1.0f,  0.0f,
          1.0f, -1.0f,  0.0f,
@@ -58,7 +51,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     CanvasShaderProgram canvasShaderProgram;
     private int programId;
 
-    private int brushTextureId;
     private int canvasTextureId;
 
     // Uniforms for GLSL programs.
@@ -67,7 +59,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     // Zoom level
     private int zoomHandle;
-    private float brushZoom = 2.0f;
     private float canvasZoom = 1.0f;
 
     // Canvas size
@@ -82,10 +73,12 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     // OpenGL buffer identifiers
     private int canvasVerticesBuffer;
-    private int brushVerticesBuffer;
     private int textureCoordBuffer;
 
     private int framebuffer;
+
+    // The brush object used for drawing
+    CanvasBrush brush;
 
     // The draw queue for brush events.
     Queue<CanvasDab> drawQueue = new LinkedList<CanvasDab>();
@@ -109,19 +102,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         aTextureCoord = glGetAttribLocation(programId, "aTextureCoord");
         glEnableVertexAttribArray(aTextureCoord);
 
-        /* Send the brush vertices to the GPU */
-        FloatBuffer vertices = ByteBuffer.allocateDirect(brushVerticesData.length * 4)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer();
-        vertices.put(brushVerticesData).position(0);
-        int[] buffer = new int[1];
-        glGenBuffers(1, buffer, 0);
-        brushVerticesBuffer = buffer[0];
-        glBindBuffer(GL_ARRAY_BUFFER, brushVerticesBuffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
         /* Send Texture Coordinate data to the GPU */
+        int[] buffer = new int[1];
         FloatBuffer textureCoords = ByteBuffer.allocateDirect(textureCoordData.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
@@ -133,13 +115,15 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         /* Load Textures */
-        brushTextureId = makeTexture(1, 1, 0x000000ff);
-        canvasTextureId = makeTexture(
+        canvasTextureId = CanvasUtils.makeTexture(
                 PaintPaint.TEXTURE_SIZE,
                 PaintPaint.TEXTURE_SIZE,
                 0xffffffff);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+
+        /* Create the brush */
+        brush = new CanvasBrush(programId);
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -156,32 +140,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glUniformMatrix4fv(projectionMatrixHandle, 1, false,
                 projectionMatrix, 0);
         zoomHandle = glGetUniformLocation(programId, "uZoom");
-        glUniform1f(zoomHandle, brushZoom);
 
-        // Enable the texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, brushTextureId);
-        glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
-
-        // Enable the vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, brushVerticesBuffer);
-        glEnableVertexAttribArray(aVertexPosition);
-        glVertexAttribPointer(aVertexPosition, 3, GL_FLOAT, false, 0, 0);
-
-        while (!drawQueue.isEmpty()) {
-            CanvasDab dab = drawQueue.poll();
-            // Set the offset
-            glUniform2f(glGetUniformLocation(programId, "uOffset"), dab.getX(), dab.getY());
-
-            // Enable the texture
-            glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
-            glEnableVertexAttribArray(aTextureCoord);
-            glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
-
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        }
-
-        glBindTexture(GL_TEXTURE_2D, 0);
+        brush.drawQueue(drawQueue);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -273,42 +233,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         this.width = width;
         this.height = height;
 
-    }
-
-    /*
-     * Create an OpenGL texture and load it onto the GPU
-     * Just for testing purposes for now. Returns the texture's identifier.
-     *
-     * x and y must be powers of 2
-     *
-     * @param x the width of the texture
-     * @param y the height of the texture
-     * @param color the color value
-     */
-    public int makeTexture(int x, int y, int color) {
-        int[] tid = new int[1];
-        ByteBuffer bb = ByteBuffer.allocateDirect(x*y*4);
-        IntBuffer  ib = bb.asIntBuffer();
-
-        //int color = 0x0000ffff;
-        for (int i = 0; i < x * y; i++) {
-            ib.put(color);
-        }
-
-        // Create and bind a single texture object.
-        glGenTextures(1, tid, 0);
-        glBindTexture(GL_TEXTURE_2D, tid[0]);
-
-        // Copy the texture to the GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bb);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        // Unbind texture
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return tid[0];
     }
 
     /**

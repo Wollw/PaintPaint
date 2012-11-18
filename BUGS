@@ -1,5 +1,6 @@
 * Low dabs per second on all devices
 * stray dabs on Toro
+	* This is a heisenbug :|  If I turn on touch debugging setting in developer options it stops happening
 * bad offset for brush from touch position on some devices
 	* Confirmed on MB612 (Motorola XPRT) running 2.3.5
 	* Confirmed by R3nny on another device running 2.3.5 (Not sure which model)

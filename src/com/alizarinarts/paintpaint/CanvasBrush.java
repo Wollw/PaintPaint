@@ -8,6 +8,8 @@ import java.util.Queue;
 
 import static android.opengl.GLES20.*;
 
+import android.util.Log;
+
 /**
  * This class maintains the state and methods used with the paint brush.
  *
@@ -125,6 +127,7 @@ public class CanvasBrush {
     }
 
     public void setColor(int color) {
+        Log.d(PaintPaint.NAME,""+color);
         glDeleteTextures(1, new int[] { textureId }, 0);
         textureId = CanvasUtils.makeTexture(BRUSH_PIXEL_SIZE, BRUSH_PIXEL_SIZE, color);
         this.color = color;

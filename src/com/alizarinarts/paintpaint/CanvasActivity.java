@@ -19,6 +19,7 @@ import android.os.Environment;
 
 import android.util.Log;
 
+import android.view.View;
 
 import android.widget.EditText;
 
@@ -129,21 +130,43 @@ public class CanvasActivity extends SherlockActivity {
     public void onClickBrushSettings(MenuItem mi) {
         if (mCanvas.getBrush() == null)
             return;
-        // Setup the EditText view for our save dialog
-        final SeekBar sb = new SeekBar(this);
+
+        /*final SeekBar sb = new SeekBar(this);
         sb.setMax(100);
         float size = mCanvas.getBrush().getSize();
         sb.setProgress((int)size);
+
+        */
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Brush Settings");
         alert.setMessage("Size");
 
-        alert.setView(sb);
+        final View v = getLayoutInflater().inflate(R.layout.dialog_brush_settings, null);
+
+        /* Setup the initial seekbar state based on the current settings */
+        SeekBar sb = (SeekBar)v.findViewById(R.id.brush_setting_size);
+        sb.setProgress((int)(mCanvas.getBrush().getSize()));
+        sb = (SeekBar)v.findViewById(R.id.brush_setting_red);
+        sb.setProgress((mCanvas.getBrush().getColor()&0xff000000)>>>24);
+        sb = (SeekBar)v.findViewById(R.id.brush_setting_green);
+        sb.setProgress((mCanvas.getBrush().getColor()&0xff0000)>>>16);
+        sb = (SeekBar)v.findViewById(R.id.brush_setting_blue);
+        sb.setProgress((mCanvas.getBrush().getColor()&0xff00)>>>8);
+
+        alert.setView(v);
+
         alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
-                    final float size = sb.getProgress();
+                    final float size = ((SeekBar)v.findViewById(R.id.brush_setting_size)).getProgress();
                     mCanvas.getBrush().setSize(size);
+                    int color = ((SeekBar)v.findViewById(R.id.brush_setting_red)).getProgress()<<24;
+                    color    |= ((SeekBar)v.findViewById(R.id.brush_setting_green)).getProgress()<<16;
+                    color    |= ((SeekBar)v.findViewById(R.id.brush_setting_blue)).getProgress()<<8;
+                    final int c = color;
+                    mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
+                        mCanvas.getBrush().setColor(c);
+                    }});
                 }
         });
 

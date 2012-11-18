@@ -15,4 +15,8 @@
 	<string name="cancel">Cancel</string>
 	<string name="brush_settings_title">Brush Settings</string>
 	<string name="brush_size">Brush Size</string>
+	<string name="brush_setting_size">Size</string>
+	<string name="brush_setting_red">Red</string>
+	<string name="brush_setting_green">Green</string>
+	<string name="brush_setting_blue">Blue</string>
 </resources>

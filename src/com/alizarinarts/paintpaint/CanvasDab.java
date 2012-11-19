@@ -10,11 +10,13 @@ public class CanvasDab {
     private final float x;
     private final float y;
     private final float pressure;
+    private final boolean newStroke;
 
-    public CanvasDab(float x, float y, float pressure) {
+    public CanvasDab(float x, float y, float pressure, boolean newStroke) {
         this.x = x;
         this.y = y;
         this.pressure = pressure;
+        this.newStroke = newStroke;
     }
 
     public float getX() {
@@ -27,6 +29,10 @@ public class CanvasDab {
 
     public float getPressure() {
         return pressure;
+    }
+
+    public boolean isNewStroke() {
+        return newStroke;
     }
 
 }

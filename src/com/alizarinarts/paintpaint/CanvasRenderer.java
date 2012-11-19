@@ -170,6 +170,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+        /* Unbind everything */
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -273,7 +274,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         float offsetX = ((float)x - (width / 2))/width*2;
         float offsetY = -((float)y - (height / 2))/height*2;
 
-        drawQueue.offer(new CanvasDab(offsetX, offsetY, p));
+        drawQueue.offer(new CanvasDab(offsetX, offsetY, p, newEvent));
     }
 
     public CanvasBrush getBrush() {

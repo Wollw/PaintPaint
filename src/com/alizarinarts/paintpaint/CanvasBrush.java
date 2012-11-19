@@ -44,6 +44,11 @@ public class CanvasBrush {
         1.0f, 1.0f,
     };
 
+    private float lastX;
+    private float lastY;
+
+    private static final int STEPS_BETWEEN_DABS = 60;
+
     public CanvasBrush(int shaderProgramId) {
 
         this.shaderProgramId = shaderProgramId;
@@ -100,15 +105,40 @@ public class CanvasBrush {
 
         while (!dabs.isEmpty()) {
             CanvasDab dab = dabs.poll();
-            // Set the offset
-            glUniform2f(glGetUniformLocation(shaderProgramId, "uOffset"), dab.getX(), dab.getY());
+            Log.d(PaintPaint.NAME, "" + dab.isNewStroke());
+            float x, y;
+            if (dab.isNewStroke()) {
+                x = dab.getX();
+                y = dab.getY();
+            } else {
+                x = lastX;
+                y = lastY;
+            }
 
-            // Enable the texture
-            glBindBuffer(GL_ARRAY_BUFFER, textureCoordBufferId);
-            glEnableVertexAttribArray(aTexCoord);
-            glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, false, 0, 0);
+            int i = STEPS_BETWEEN_DABS;
+            while ( i-- != 0 ) {
+                // Set the offset
+                glUniform2f(glGetUniformLocation(shaderProgramId, "uOffset"), x, y);
 
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+                // Enable the texture
+                glBindBuffer(GL_ARRAY_BUFFER, textureCoordBufferId);
+                glEnableVertexAttribArray(aTexCoord);
+                glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, false, 0, 0);
+
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+                if (dab.isNewStroke()){
+                    break;
+                } else {
+                    float dx = (dab.getX() - lastX);
+                    float dy = (dab.getY() - lastY);
+                    x += dx / STEPS_BETWEEN_DABS;
+                    y += dy / STEPS_BETWEEN_DABS;
+                }
+
+            }
+            lastX = dab.getX();
+            lastY = dab.getY();
         }
 
         glBindTexture(GL_TEXTURE_2D, 0);

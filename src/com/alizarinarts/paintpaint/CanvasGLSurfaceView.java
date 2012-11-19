@@ -31,6 +31,7 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
         boolean newEvent = false;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
                 newEvent = true;
                 //lastTouchX = event.getX();
                 //lastTouchY = event.getY();

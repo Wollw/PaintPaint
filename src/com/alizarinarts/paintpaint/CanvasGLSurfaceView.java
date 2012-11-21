@@ -6,6 +6,8 @@ import android.content.Context;
 
 import android.opengl.GLSurfaceView;
 
+import android.util.Log;
+
 import android.view.MotionEvent;
 
 /**
@@ -25,7 +27,7 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
         setEGLContextClientVersion(2);
         mRenderer = new CanvasRenderer(context);
         setRenderer(mRenderer);
-    }
+}
 
     public boolean onTouchEvent(final MotionEvent event) {
         boolean newEvent = false;

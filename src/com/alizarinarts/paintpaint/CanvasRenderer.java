@@ -251,7 +251,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     public void setCanvasBitmap(Bitmap bitmap) {
         restoreBitmap = bitmap;
         int newTexture = CanvasUtils.makeTexture(bitmap);
-        glDeleteTextures(1, new int[]{canvasTextureId}, 0);
+        if (canvasTextureId != 0)
+            glDeleteTextures(1, new int[]{canvasTextureId}, 0);
         canvasTextureId = newTexture;
     }
 

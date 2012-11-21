@@ -61,13 +61,15 @@ public class CanvasActivity extends SherlockActivity {
         super.onResume();
         mCanvas.getSurfaceView().onResume();
         Log.d(PaintPaint.NAME, mSavePath+TMP_FILE);
-        File file = new File(mSavePath, TMP_FILE);
-        if (file.exists()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(mSavePath+TMP_FILE);
-            mCanvas.getRenderer().setCanvasBitmap(bitmap);
-        } else {
-            mCanvas.getRenderer().setCanvasBitmap(null);
-        }
+        final File file = new File(mSavePath, TMP_FILE);
+        mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
+            if (file.exists()) {
+                Bitmap bitmap = BitmapFactory.decodeFile(mSavePath+TMP_FILE);
+                mCanvas.getRenderer().setCanvasBitmap(bitmap);
+            } else {
+                mCanvas.getRenderer().setCanvasBitmap(null);
+            }
+        }});
         
     }
 

@@ -12,6 +12,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -38,6 +41,7 @@ public class CanvasActivity extends SherlockActivity {
 
     /** The save path for image saving. */
     private String mSavePath;
+    private final static String TMP_FILE = ".tmp.png";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +60,27 @@ public class CanvasActivity extends SherlockActivity {
     protected void onResume() {
         super.onResume();
         mCanvas.getSurfaceView().onResume();
-        //Do additional stuff to unpause program
+        Log.d(PaintPaint.NAME, mSavePath+TMP_FILE);
+        File file = new File(mSavePath, TMP_FILE);
+        if (file.exists()) {
+            Bitmap bitmap = BitmapFactory.decodeFile(mSavePath+TMP_FILE);
+            mCanvas.getRenderer().setCanvasBitmap(bitmap);
+        } else {
+            mCanvas.getRenderer().setCanvasBitmap(null);
+        }
+        
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        /* This should get moved to the SurfaceView onPause method. */
+        mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
+            mCanvas.saveCanvas(mSavePath,TMP_FILE);
+        }});
+
         mCanvas.getSurfaceView().onPause();
-        //Do additional stuff to pause program
     }
 
     @Override
@@ -80,8 +97,8 @@ public class CanvasActivity extends SherlockActivity {
      */
     public void onClickShare(MenuItem mi) {
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvas(mSavePath,".tmp.png");
-            File file = new File(mSavePath+".tmp.png");
+            mCanvas.saveCanvas(mSavePath,TMP_FILE);
+            File file = new File(mSavePath+TMP_FILE);
             Intent intent = new Intent(android.content.Intent.ACTION_SEND);
             intent.setType("image/png");
             intent.putExtra(Intent.EXTRA_STREAM,Uri.fromFile(file));

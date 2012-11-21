@@ -16,13 +16,13 @@ import android.graphics.Bitmap;
 
 import android.graphics.Bitmap.CompressFormat;
 
-import android.opengl.GLSurfaceView;
-
 import android.util.Log;
 
 /**
  * This class represents the drawing aspects of the CanvasActivity and serves to
  * keep the layout of the class and menus separate from the drawing function.
+ *
+ * Note: The entire Canvas design needs rethinking.
  * 
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
@@ -50,8 +50,12 @@ public class Canvas {
         }
     }
 
-    public GLSurfaceView getSurfaceView() {
+    public CanvasGLSurfaceView getSurfaceView() {
         return mSurfaceView;
+    }
+
+    public CanvasRenderer getRenderer() {
+        return mRenderer;
     }
 
     /**

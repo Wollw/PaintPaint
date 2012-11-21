@@ -105,9 +105,9 @@ public class CanvasBrush {
 
         while (!dabs.isEmpty()) {
             CanvasDab dab = dabs.poll();
-            Log.d(PaintPaint.NAME, "" + dab.isNewStroke());
             float x, y;
             if (dab.isNewStroke()) {
+                Log.d(PaintPaint.NAME, "new stroke");
                 x = dab.getX();
                 y = dab.getY();
             } else {

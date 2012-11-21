@@ -1,9 +1,13 @@
 package com.alizarinarts.paintpaint;
 
+import android.graphics.Bitmap;
+
 import static android.opengl.GLES20.*;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+
+import android.opengl.GLUtils;
 
 /**
  * Commonly used utilities for rendering and maintaining the canvas.
@@ -47,6 +51,20 @@ public class CanvasUtils {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         return tid[0];
+    }
+
+    /* Make a texture from a bitmap or a new blank canvas if Bitmap is null
+     *
+     * @param bitmap the bitmap to use on the texture
+     */
+    public static int makeTexture(Bitmap bitmap) {
+        int textureId = makeTexture(PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE, 0xffffffff);
+        if (bitmap != null) {
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            GLUtils.texSubImage2D(GL_TEXTURE_2D, 1, 0, 0, bitmap);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+        return textureId;
     }
 
 }

@@ -34,6 +34,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private Resources resources;
     private AssetManager assets;
 
+    private Bitmap restoreBitmap = null;
+
     private final float[] canvasVerticesData = {
         -1.0f, -1.0f,  0.0f,
          1.0f, -1.0f,  0.0f,
@@ -115,10 +117,11 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         /* Load Textures */
-        canvasTextureId = CanvasUtils.makeTexture(
-                PaintPaint.TEXTURE_SIZE,
-                PaintPaint.TEXTURE_SIZE,
-                0xffffffff);
+        canvasTextureId = CanvasUtils.makeTexture(restoreBitmap);
+            if (restoreBitmap != null) {
+            restoreBitmap.recycle();
+            restoreBitmap = null;
+        }
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
@@ -235,6 +238,21 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         this.width = width;
         this.height = height;
 
+    }
+
+    /**
+     * Set the canvas' bitmap to some other bitmap.  Used to load files and
+     * restore after activity changes.
+     *
+     * Example code from http://www.learnopengles.com/android-lesson-four-introducing-basic-texturing/
+     *
+     * @param bitmap The bitmap to load as to the canvas.
+     */
+    public void setCanvasBitmap(Bitmap bitmap) {
+        restoreBitmap = bitmap;
+        int newTexture = CanvasUtils.makeTexture(bitmap);
+        glDeleteTextures(1, new int[]{canvasTextureId}, 0);
+        canvasTextureId = newTexture;
     }
 
     /**

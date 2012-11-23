@@ -119,7 +119,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         /* Load Textures */
         canvasTextureId = CanvasUtils.makeTexture(restoreBitmap);
             if (restoreBitmap != null) {
-            restoreBitmap.recycle();
             restoreBitmap = null;
         }
 

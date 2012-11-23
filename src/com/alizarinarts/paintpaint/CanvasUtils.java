@@ -9,6 +9,8 @@ import java.nio.IntBuffer;
 
 import android.opengl.GLUtils;
 
+import android.util.Log;
+
 /**
  * Commonly used utilities for rendering and maintaining the canvas.
  *
@@ -60,11 +62,30 @@ public class CanvasUtils {
     public static int makeTexture(Bitmap bitmap) {
         int textureId = makeTexture(PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE, 0xffffffff);
         if (bitmap != null) {
+            Bitmap flippedbmp = flipBitmap(bitmap);
             glBindTexture(GL_TEXTURE_2D, textureId);
-            GLUtils.texSubImage2D(GL_TEXTURE_2D, 1, 0, 0, bitmap);
+            GLUtils.texSubImage2D(GL_TEXTURE_2D, 0, 0, 0, flippedbmp);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
         return textureId;
+    }
+
+    /** Flips the pixels in a Bitmap to be mirrored vertically.  This is needed
+     * for OpenGL to draw the texture properly as loads texture bottom up.
+     * @return a new Bitmap that is identical to the argument but flipped.
+     * @param bitmap The Bitmap to flip the pixels of
+     */
+    static public Bitmap flipBitmap(Bitmap bitmap) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        int[] pixels = new int[w*h];
+        bitmap.getPixels(pixels, 0, w, 0, 0, w, h);
+        for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            pixels[y*w+x] = bitmap.getPixel(x, h-1-y);
+        }}
+        bitmap = Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888);
+        return bitmap;
     }
 
 }

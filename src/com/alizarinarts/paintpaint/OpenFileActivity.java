@@ -1,5 +1,9 @@
 package com.alizarinarts.paintpaint;
 
+import java.io.File;
+
+import java.util.Arrays;
+
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 
@@ -8,9 +12,19 @@ import com.actionbarsherlock.view.MenuItem;
 import android.content.Intent;
 
 import android.os.Bundle;
+import android.os.Environment;
+
+
+import android.view.View;
+
+
+import android.widget.AdapterView;
+
+import android.widget.AdapterView.OnItemClickListener;
 
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 /**
  * Create a ListView of all the files that can be opened for editing.  When an
@@ -19,6 +33,8 @@ import android.widget.ListView;
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
 public class OpenFileActivity extends SherlockActivity {
+
+    String mSavePath;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,13 +45,26 @@ public class OpenFileActivity extends SherlockActivity {
         ab.setHomeButtonEnabled(true);
         ab.setDisplayHomeAsUpEnabled(true);
 
-        /*
-         * Placeholder for now.  This should populate the ListView with
-         * the names of the files that can be opened.
-         */
-        ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, new String[] {"No Files Found!"});
+        mSavePath = Environment.getExternalStorageDirectory() + "/" + PaintPaint.NAME + "/";
+        File dir = new File(mSavePath);
+        ArrayAdapter<String> aa;
+        if (dir.exists() && dir.list().length > 0) {
+            String[] fileList = dir.list();
+            Arrays.sort(fileList);
+            aa = new ArrayAdapter<String>(this,
+                 android.R.layout.simple_list_item_1, fileList);
+        } else {
+            aa = new ArrayAdapter<String>(this,
+                 android.R.layout.simple_list_item_1, new String[]{"No files found."}); 
+        }
         ListView lv = (ListView) findViewById(R.id.fileList);
+        lv.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                Intent i = new Intent(OpenFileActivity.this, CanvasActivity.class);
+                i.putExtra("openFile", ((TextView)v).getText());
+                startActivity(i);
+            }
+        });
         lv.setAdapter(aa);
     }
 

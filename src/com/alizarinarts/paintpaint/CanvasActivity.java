@@ -41,14 +41,20 @@ public class CanvasActivity extends SherlockActivity {
 
     /** The save path for image saving. */
     private String mSavePath;
-    private final static String TMP_FILE = ".tmp.png";
+
+    private String openFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            openFile = extras.getString("openFile");
+        }
+
         mCanvas = new Canvas(this); 
-        mSavePath = Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name) + "/";
+        mSavePath = Environment.getExternalStorageDirectory() + "/" + PaintPaint.NAME + "/";
 
         // Enable the ActionBar icon as Up button.
         ActionBar ab = getSupportActionBar();
@@ -58,19 +64,24 @@ public class CanvasActivity extends SherlockActivity {
 
     @Override
     protected void onResume() {
+        final String fileName;
+        if (openFile != null)
+            fileName = openFile;
+        else
+            fileName = PaintPaint.AUTOSAVE;
         super.onResume();
         mCanvas.getSurfaceView().onResume();
-        Log.d(PaintPaint.NAME, mSavePath+TMP_FILE);
-        final File file = new File(mSavePath, TMP_FILE);
+        Log.d(PaintPaint.NAME, mSavePath+fileName);
+        final File file = new File(mSavePath, fileName);
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
             if (file.exists()) {
-                Bitmap bitmap = BitmapFactory.decodeFile(mSavePath+TMP_FILE);
+                Bitmap bitmap = BitmapFactory.decodeFile(mSavePath+fileName);
                 mCanvas.getRenderer().setCanvasBitmap(bitmap);
             } else {
                 mCanvas.getRenderer().setCanvasBitmap(null);
             }
         }});
-        
+        openFile = null;
     }
 
     @Override
@@ -79,7 +90,7 @@ public class CanvasActivity extends SherlockActivity {
 
         /* This should get moved to the SurfaceView onPause method. */
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvas(mSavePath,TMP_FILE);
+            mCanvas.saveCanvas(mSavePath, PaintPaint.AUTOSAVE);
         }});
 
         mCanvas.getSurfaceView().onPause();
@@ -99,8 +110,8 @@ public class CanvasActivity extends SherlockActivity {
      */
     public void onClickShare(MenuItem mi) {
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvas(mSavePath,TMP_FILE);
-            File file = new File(mSavePath+TMP_FILE);
+            mCanvas.saveCanvas(mSavePath, PaintPaint.AUTOSAVE);
+            File file = new File(mSavePath+PaintPaint.AUTOSAVE);
             Intent intent = new Intent(android.content.Intent.ACTION_SEND);
             intent.setType("image/png");
             intent.putExtra(Intent.EXTRA_STREAM,Uri.fromFile(file));
@@ -125,7 +136,7 @@ public class CanvasActivity extends SherlockActivity {
         alert.setView(input);
         alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
-                    final String fileName = input.getText().toString();
+                    final String fileName = input.getText().toString()+".png";
                     Log.d(PaintPaint.NAME,"saving: "+fileName);
                     mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
                         mCanvas.saveCanvas(mSavePath, fileName);

@@ -3,4 +3,4 @@
 	* Probable fix: Drop dabs too far from last few positions and do extra interpolation for number of dropped dabs
 * bad offset for brush from touch position on some devices
 	* Confirmed on MB612 (Motorola XPRT) running 2.3.5
-	* Confirmed by R3nny on another device running 2.3.5 (Not sure which model)
+	* Confirmed by R3nny on HTC EVO 4G running 2.3.5

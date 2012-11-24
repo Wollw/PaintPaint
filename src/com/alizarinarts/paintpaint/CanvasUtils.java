@@ -9,7 +9,6 @@ import java.nio.IntBuffer;
 
 import android.opengl.GLUtils;
 
-import android.util.Log;
 
 /**
  * Commonly used utilities for rendering and maintaining the canvas.

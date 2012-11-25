@@ -2,6 +2,7 @@ package com.alizarinarts.paintpaint;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -13,6 +14,8 @@ import android.content.Intent;
 
 import android.os.Bundle;
 import android.os.Environment;
+
+import android.util.Log;
 
 
 import android.view.View;
@@ -49,10 +52,20 @@ public class OpenFileActivity extends SherlockActivity {
         File dir = new File(mSavePath);
         ArrayAdapter<String> aa;
         if (dir.exists() && dir.list().length > 0) {
-            String[] fileList = dir.list();
-            Arrays.sort(fileList);
+            /*
+             * Build the list of images that can be opened
+             */
+            ArrayList<String> imageArrayList = new ArrayList<String>();
+            for (String fileName : dir.list()) {
+                if (!fileName.startsWith(".") && fileName.endsWith(".png")) {
+                    imageArrayList.add(fileName);
+                }
+            }
+            String[] imageList = new String[imageArrayList.size()];
+            imageArrayList.toArray(imageList);
+            Arrays.sort(imageList);
             aa = new ArrayAdapter<String>(this,
-                 android.R.layout.simple_list_item_1, fileList);
+                 android.R.layout.simple_list_item_1, imageList);
         } else {
             aa = new ArrayAdapter<String>(this,
                  android.R.layout.simple_list_item_1, new String[]{"No files found."}); 

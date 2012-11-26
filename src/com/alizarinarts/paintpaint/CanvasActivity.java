@@ -203,6 +203,14 @@ public class CanvasActivity extends SherlockActivity {
 
     }
 
+    /**
+     * Clears the canvas.
+     */
+    public void onClickClearCanvas(MenuItem mi) {
+        mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
+            mCanvas.clear();
+        }});
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem mi) {
         switch (mi.getItemId()) {

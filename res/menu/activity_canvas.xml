@@ -11,7 +11,12 @@
         android:title="@string/canvasShareMenuItem" android:onClick="onClickShare"/>
     <item
         android:id="@+id/brushMenuItem"
-        android:icon="@android:drawable/ic_menu_preferences"
+        android:icon="@android:drawable/ic_menu_edit"
         android:showAsAction="always"
         android:title="@string/canvasBrushMenuItem" android:onClick="onClickBrushSettings"/>
+    <item
+        android:id="@+id/clearMenuItem"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="always"
+        android:title="@string/canvasClearMenuItem" android:onClick="onClickClearCanvas"/>
 </menu>

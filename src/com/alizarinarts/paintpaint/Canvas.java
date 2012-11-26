@@ -103,4 +103,7 @@ public class Canvas {
         return mRenderer.getBrush();
     }
 
+    public void clear() {
+        mRenderer.clear();
+    }
 }

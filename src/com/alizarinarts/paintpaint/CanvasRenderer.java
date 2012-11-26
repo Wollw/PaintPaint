@@ -85,6 +85,9 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     // The draw queue for brush events.
     Queue<CanvasDab> drawQueue = new LinkedList<CanvasDab>();
 
+    // Flag used to indicate if canvas should be cleared.
+    boolean willClear = false;
+
     public CanvasRenderer(Context context) {
         resources = context.getResources();
         assets = resources.getAssets();
@@ -122,7 +125,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
             restoreBitmap = null;
         }
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         /* Create the brush */
         brush = new CanvasBrush(programId);
@@ -138,6 +141,12 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
+        if (willClear) {
+            glClear(GL_COLOR_BUFFER_BIT);
+            willClear = false;
+            Log.d("","test");
+        }
+
         // Camera Matrix Setup
         projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
         glUniformMatrix4fv(projectionMatrixHandle, 1, false,
@@ -149,6 +158,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* Draw Canvas */
+
 
         // Set canvas zoom level
         glUniform1f(zoomHandle, canvasZoom);
@@ -297,5 +307,9 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     public CanvasBrush getBrush() {
         return brush;
+    }
+
+    public void clear() {
+        willClear = true;
     }
 }

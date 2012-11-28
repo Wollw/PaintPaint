@@ -1,4 +1,4 @@
-* Write code for loading canvas from an image.
-* Write code for saving canvas state between activity changes.
 * Stray mark bug must be fixed.
 * Use a better color and brush size picker.
+* Save/Restore Brush settings
+* Brush Textures

@@ -15,11 +15,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 
-import android.util.Log;
-
-
 import android.view.View;
-
 
 import android.widget.AdapterView;
 
@@ -58,7 +54,7 @@ public class OpenFileActivity extends SherlockActivity {
             ArrayList<String> imageArrayList = new ArrayList<String>();
             for (String fileName : dir.list()) {
                 if (!fileName.startsWith(".") && fileName.endsWith(".png")) {
-                    imageArrayList.add(fileName);
+                    imageArrayList.add(fileName.substring(0,fileName.length()-4));
                 }
             }
             String[] imageList = new String[imageArrayList.size()];
@@ -74,7 +70,7 @@ public class OpenFileActivity extends SherlockActivity {
         lv.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent i = new Intent(OpenFileActivity.this, CanvasActivity.class);
-                i.putExtra("openFile", ((TextView)v).getText());
+                i.putExtra("openFile", ((TextView)v).getText()+".png");
                 startActivity(i);
             }
         });

@@ -58,8 +58,8 @@ public class CanvasUtils {
      *
      * @param bitmap the bitmap to use on the texture
      */
-    public static int makeTexture(Bitmap bitmap) {
-        int textureId = makeTexture(PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE, 0xffffffff);
+    public static int makeTexture(Bitmap bitmap, int w, int h) {
+        int textureId = makeTexture(w, h, 0xffffffff);
         if (bitmap != null) {
             Bitmap flippedbmp = flipBitmap(bitmap);
             glBindTexture(GL_TEXTURE_2D, textureId);

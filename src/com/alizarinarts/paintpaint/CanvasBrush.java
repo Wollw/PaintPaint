@@ -6,6 +6,8 @@ import java.nio.FloatBuffer;
 
 import java.util.Queue;
 
+import android.graphics.Bitmap;
+
 import static android.opengl.GLES20.*;
 
 import android.util.Log;
@@ -23,6 +25,7 @@ public class CanvasBrush {
     private int textureId;
     private int textureCoordBufferId;
     private int vertexBufferId;
+    private int maskId;
 
 
     private int shaderProgramId;
@@ -88,14 +91,23 @@ public class CanvasBrush {
      *
      */
     public void drawQueue(Queue<CanvasDab> dabs) {
+        glUseProgram(shaderProgramId);
 
         glUniform1f(glGetUniformLocation(shaderProgramId, "uZoom"), size);
 
-        // Enable the texture
+        int aTexCoord = glGetAttribLocation(shaderProgramId, "aTextureCoord");
+
+
+        // Enable the textures
+        // Multiple texture code example from
+        // http://opengles2learning.blogspot.com/2011/06/multi-texturing.html
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glUniform1i(glGetUniformLocation(shaderProgramId, "uTexture"), 0);
-        int aTexCoord = glGetAttribLocation(shaderProgramId, "aTextureCoord");
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, maskId);
+        glUniform1i(glGetUniformLocation(shaderProgramId, "uMask"), 1);
 
         // Enable the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
@@ -161,5 +173,9 @@ public class CanvasBrush {
         glDeleteTextures(1, new int[] { textureId }, 0);
         textureId = CanvasUtils.makeTexture(BRUSH_PIXEL_SIZE, BRUSH_PIXEL_SIZE, color);
         this.color = color;
+    }
+
+    public void setMask(Bitmap b) {
+        maskId = CanvasUtils.makeTexture(b, b.getWidth(), b.getHeight());
     }
 }

@@ -4,3 +4,4 @@
 * bad offset for brush from touch position on some devices
 	* Confirmed on MB612 (Motorola XPRT) running 2.3.5
 	* Confirmed by R3nny on HTC EVO 4G running 2.3.5
+* Canvas stops being paintable after sharing.

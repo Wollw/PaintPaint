@@ -1,5 +1,7 @@
 package com.alizarinarts.paintpaint;
 
+import java.io.IOException;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -16,6 +18,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import static android.opengl.GLES20.*;
 import android.opengl.GLSurfaceView;
@@ -54,6 +57,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private int programId;
 
     private int canvasTextureId;
+    private int canvasMaskId;
 
     // Uniforms for GLSL programs.
     private int projectionMatrixHandle;
@@ -120,15 +124,21 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         /* Load Textures */
-        canvasTextureId = CanvasUtils.makeTexture(restoreBitmap);
-            if (restoreBitmap != null) {
+        canvasTextureId = CanvasUtils.makeTexture(restoreBitmap, PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE);
+        if (restoreBitmap != null) {
             restoreBitmap = null;
         }
+        canvasMaskId = CanvasUtils.makeTexture(null, 8, 8);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         /* Create the brush */
         brush = new CanvasBrush(programId);
+        try {
+            brush.setMask(BitmapFactory.decodeStream(assets.open("brushes/round.png")));
+        } catch (IOException e) {
+            Log.e(PaintPaint.NAME, "Failed to load brush mask.");
+        }
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -154,6 +164,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
         brush.drawQueue(drawQueue);
 
+        glUseProgram(programId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* Draw Canvas */
@@ -165,6 +176,11 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, canvasTextureId);
         glUniform1i(glGetUniformLocation(programId, "uTexture"), 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, canvasMaskId);
+        glUniform1i(glGetUniformLocation(programId, "uMask"), 1);
+
 
         // Enable the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, canvasVerticesBuffer);
@@ -178,6 +194,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBindBuffer(GL_ARRAY_BUFFER, textureCoordBuffer);
         glEnableVertexAttribArray(aTextureCoord);
         glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
+
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -258,7 +275,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      */
     public void setCanvasBitmap(Bitmap bitmap) {
         restoreBitmap = bitmap;
-        int newTexture = CanvasUtils.makeTexture(bitmap);
+        int newTexture = CanvasUtils.makeTexture(bitmap, PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE);
         if (canvasTextureId != 0)
             glDeleteTextures(1, new int[]{canvasTextureId}, 0);
         canvasTextureId = newTexture;

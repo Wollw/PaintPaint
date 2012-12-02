@@ -5,16 +5,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
-
-import com.actionbarsherlock.view.MenuItem;
+import android.app.ActionBar;
+import android.app.Activity;
 
 import android.content.Intent;
 
 import android.os.Bundle;
 import android.os.Environment;
 
+import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.AdapterView;
@@ -31,7 +30,7 @@ import android.widget.TextView;
  *
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
-public class OpenFileActivity extends SherlockActivity {
+public class OpenFileActivity extends Activity {
 
     String mSavePath;
 
@@ -40,7 +39,7 @@ public class OpenFileActivity extends SherlockActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_file);
 
-        ActionBar ab = getSupportActionBar();
+        ActionBar ab = getActionBar();
         ab.setHomeButtonEnabled(true);
         ab.setDisplayHomeAsUpEnabled(true);
 

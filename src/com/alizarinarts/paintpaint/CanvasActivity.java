@@ -16,6 +16,7 @@ import android.app.AlertDialog;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -71,12 +72,15 @@ public class CanvasActivity extends Activity {
 
     @Override
     protected void onResume() {
+
         final String fileName;
         if (openFile != null)
             fileName = openFile;
         else
             fileName = PaintPaint.AUTOSAVE;
         super.onResume();
+
+
         mCanvas.getSurfaceView().onResume();
         Log.d(PaintPaint.NAME, mSavePath+fileName);
         final File file = new File(mSavePath, fileName);
@@ -89,6 +93,7 @@ public class CanvasActivity extends Activity {
             }
         }});
         openFile = null;
+
     }
 
     @Override
@@ -184,7 +189,10 @@ public class CanvasActivity extends Activity {
         sb = (SeekBar)v.findViewById(R.id.brush_setting_blue);
         sb.setProgress((mCanvas.getBrush().getColor()&0xff00)>>>8);
 
+
         alert.setView(v);
+
+        final SharedPreferences settings = getPreferences(0);
 
         alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
@@ -197,6 +205,10 @@ public class CanvasActivity extends Activity {
                     mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
                         mCanvas.getBrush().setColor(c);
                     }});
+                    SharedPreferences.Editor edit = settings.edit();
+                    edit.putFloat("BRUSH_SIZE", size);
+                    edit.putInt("BRUSH_COLOR", color);
+                    edit.commit();
                 }
         });
 

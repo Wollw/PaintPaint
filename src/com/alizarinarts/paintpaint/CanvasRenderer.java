@@ -13,7 +13,10 @@ import java.util.Queue;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.app.Activity;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
@@ -36,6 +39,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
 
     private Resources resources;
     private AssetManager assets;
+    private SharedPreferences settings;
 
     private Bitmap restoreBitmap = null;
 
@@ -93,6 +97,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     boolean willClear = false;
 
     public CanvasRenderer(Context context) {
+        settings = ((Activity)context).getPreferences(0);
         resources = context.getResources();
         assets = resources.getAssets();
     }
@@ -139,6 +144,8 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         } catch (IOException e) {
             Log.e(PaintPaint.NAME, "Failed to load brush mask.");
         }
+        brush.setSize(settings.getFloat("BRUSH_SIZE", 1.0f));
+        brush.setColor(settings.getInt("BRUSH_COLOR", 0x000000ff));
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);

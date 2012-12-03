@@ -1,1 +1,2 @@
 * Canvas stops being paintable after sharing.
+* Seems the stray position bug on Galaxy Nexus devices still pops up... hmm.

@@ -50,7 +50,7 @@ public class CanvasBrush {
     private float lastX;
     private float lastY;
 
-    private static final int STEPS_BETWEEN_DABS = 60;
+    private static final int STEPS_BETWEEN_DABS = 90;
 
     public CanvasBrush(int shaderProgramId) {
 

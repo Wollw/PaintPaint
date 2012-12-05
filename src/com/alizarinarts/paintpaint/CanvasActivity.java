@@ -64,14 +64,15 @@ public class CanvasActivity extends SherlockActivity {
 
     @Override
     protected void onResume() {
+        super.onResume();
 
         final String fileName;
         if (openFile != null)
             fileName = openFile;
         else
             fileName = PaintPaint.AUTOSAVE;
-        super.onResume();
 
+        Log.d(PaintPaint.NAME,"onResume: " + fileName);
 
         mCanvas.getSurfaceView().onResume();
         Log.d(PaintPaint.NAME, mSavePath+fileName);
@@ -91,6 +92,8 @@ public class CanvasActivity extends SherlockActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
+        Log.d(PaintPaint.NAME,"onPause");
 
         /* This should get moved to the SurfaceView onPause method. */
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {

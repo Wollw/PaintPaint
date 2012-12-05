@@ -93,7 +93,6 @@ public class CanvasBrush {
     public void drawQueue(Queue<CanvasDab> dabs) {
         glUseProgram(shaderProgramId);
 
-        glUniform1f(glGetUniformLocation(shaderProgramId, "uZoom"), size);
 
         int aTexCoord = glGetAttribLocation(shaderProgramId, "aTextureCoord");
 
@@ -131,6 +130,7 @@ public class CanvasBrush {
             while ( i-- != 0 ) {
                 // Set the offset
                 glUniform2f(glGetUniformLocation(shaderProgramId, "uOffset"), x, y);
+                glUniform1f(glGetUniformLocation(shaderProgramId, "uZoom"), dab.getPressure()*2*size);
 
                 // Enable the texture
                 glBindBuffer(GL_ARRAY_BUFFER, textureCoordBufferId);

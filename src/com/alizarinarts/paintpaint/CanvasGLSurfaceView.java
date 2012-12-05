@@ -6,6 +6,8 @@ import android.content.Context;
 
 import android.opengl.GLSurfaceView;
 
+import android.util.Log;
+
 
 import android.view.MotionEvent;
 
@@ -39,18 +41,14 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
             //    return true;
             case MotionEvent.ACTION_MOVE:
                 final boolean newEventFinal = newEvent;
-                final int[] pos = new int[2];
-                getLocationOnScreen(pos);
                 final int i = event.getActionIndex();
+                final float x = event.getX(i);
+                final float y = event.getY(i);
+                final float p = event.getPressure(i);
                 // Add Runnable to queue, idea from https://github.com/MasDennis/Rajawali/issues/56
-                //if ( Math.abs(lastTouchX - event.getX()) < 50 &&
-                     //Math.abs(lastTouchY - event.getY()) < 50) {
-                    queueEvent(new Runnable() {public void run() {
-                        mRenderer.addCanvasDab((int)event.getX(i), (int)event.getY(i)-pos[1], event.getPressure(), newEventFinal);
-                    }});
-                 //   lastTouchX = event.getX();
-                  //  lastTouchY = event.getY();
-                //}
+                queueEvent(new Runnable() {public void run() {
+                    mRenderer.addCanvasDab((int)x, (int)y, p, newEventFinal);
+                }});
                 return true;
         }
 

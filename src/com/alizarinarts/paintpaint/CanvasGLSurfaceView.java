@@ -6,9 +6,6 @@ import android.content.Context;
 
 import android.opengl.GLSurfaceView;
 
-import android.util.Log;
-
-
 import android.view.MotionEvent;
 
 /**

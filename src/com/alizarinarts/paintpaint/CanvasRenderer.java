@@ -96,6 +96,10 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     // Flag used to indicate if canvas should be cleared.
     boolean willClear = false;
 
+    // Flag to tell if we can should allow the canvas to be autosaved yet
+    // Set to true on the first instance of a brush stroke being drawn.
+    boolean canAutosave = false;
+
     public CanvasRenderer(Context context) {
         settings = ((Activity)context).getPreferences(0);
         resources = context.getResources();
@@ -150,17 +154,19 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
+
     }
 
     public void onDrawFrame(GL10 glUnused) {
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
         if (willClear) {
+            Log.d(PaintPaint.NAME, "Clearing Canvas");
             glClear(GL_COLOR_BUFFER_BIT);
             willClear = false;
-            Log.d("","test");
         }
 
         // Camera Matrix Setup
@@ -169,12 +175,18 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
                 projectionMatrix, 0);
         zoomHandle = glGetUniformLocation(programId, "uZoom");
 
+        // Allow autosaving when something has been drawn to the canvas.
+        if (!canAutosave && drawQueue.size() > 0)
+            canAutosave = true;
+
         brush.drawQueue(drawQueue);
+
 
         glUseProgram(programId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* Draw Canvas */
+
 
 
         // Set canvas zoom level
@@ -310,7 +322,14 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
                 bt[(height - i - 1) * width + j]= pix1;
             }
         }
-        Bitmap sb = Bitmap.createBitmap(bt, width, height, Bitmap.Config.RGB_565);
+
+        Log.d(PaintPaint.NAME, "canAutosave = " + canAutosave);
+        Bitmap sb;
+        if (canAutosave) {
+            sb = Bitmap.createBitmap(bt, width, height, Bitmap.Config.RGB_565);
+        } else {
+            sb = null;
+        }
         return sb;
     }
 

@@ -1,6 +1,6 @@
 package com.alizarinarts.paintpaint;
 
-import android.app.Activity;
+import com.actionbarsherlock.app.SherlockActivity;
 
 import android.content.Intent;
 
@@ -14,7 +14,7 @@ import android.view.View;
  *
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
-public class MainMenuActivity extends Activity {
+public class MainMenuActivity extends SherlockActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

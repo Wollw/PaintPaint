@@ -76,7 +76,11 @@ public class Canvas {
             Log.d(PaintPaint.NAME, "Renderer is null!");
             return;
         }
+
         Bitmap b = mRenderer.getCanvasBitmap();
+        if (b == null)
+            return; // return early if we didn't get a bitmap
+
         try {
             File dir = new File(saveDir+"/");
             dir.mkdirs();

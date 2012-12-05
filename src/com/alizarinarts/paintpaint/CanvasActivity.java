@@ -2,16 +2,11 @@ package com.alizarinarts.paintpaint;
 
 import java.io.File;
 
-/*
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
-*/
-
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 
 import android.content.DialogInterface;
@@ -21,15 +16,12 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 
 import android.util.Log;
 
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.EditText;
@@ -42,7 +34,7 @@ import android.widget.SeekBar;
  *
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
-public class CanvasActivity extends Activity {
+public class CanvasActivity extends SherlockActivity {
 
     /** The representation of the drawing surface. */
     private Canvas mCanvas;
@@ -65,7 +57,7 @@ public class CanvasActivity extends Activity {
         mSavePath = Environment.getExternalStorageDirectory() + "/" + PaintPaint.NAME + "/";
 
         // Enable the ActionBar icon as Up button.
-        ActionBar ab = getActionBar();
+        ActionBar ab = getSupportActionBar();
         ab.setHomeButtonEnabled(true);
         ab.setDisplayHomeAsUpEnabled(true);
     }
@@ -110,7 +102,7 @@ public class CanvasActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_canvas, menu);
+        getSupportMenuInflater().inflate(R.menu.activity_canvas, menu);
         return true;
     }
 

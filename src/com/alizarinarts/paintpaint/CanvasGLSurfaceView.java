@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 /**
  * Custom GLSurfaceView to allow touch events.  Based on example from:
  * http://android-developers.blogspot.com/2009/04/introducing-glsurfaceview.html
+ *
+ * This class is the Android View used to display and interact with the canvas.
  * 
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
@@ -25,17 +27,15 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
         setEGLContextClientVersion(2);
         mRenderer = new CanvasRenderer(context);
         setRenderer(mRenderer);
-}
+    }
 
     public boolean onTouchEvent(final MotionEvent event) {
+        /* Add new brush dabs for each desirable MotionEvent */
         boolean newEvent = false;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 newEvent = true;
-                //lastTouchX = event.getX();
-                //lastTouchY = event.getY();
-            //    return true;
             case MotionEvent.ACTION_MOVE:
                 final boolean newEventFinal = newEvent;
                 final int i = event.getActionIndex();
@@ -48,7 +48,6 @@ public class CanvasGLSurfaceView extends GLSurfaceView {
                 }});
                 return true;
         }
-
         return false;
     }
 

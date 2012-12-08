@@ -31,7 +31,11 @@ import android.util.Log;
 
 /**
  * The OpenGL renderer responsible for creating and maintaining the canvas
- * surface.
+ * surface.  This is where the drawing happens.
+ *
+ * The main idea behind this is that CanvasDab objects are added to a Queue and
+ * then drawn to an invisible framebuffer texture.  This texture is then drawn
+ * to a polygon on the screen framebuffer for display.
  *
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
@@ -42,6 +46,9 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
     private SharedPreferences settings;
 
     private Bitmap restoreBitmap = null;
+
+    // The default value for the canvas texture dimensions
+    private int textureSize = 2048;
 
     private final float[] canvasVerticesData = {
         -1.0f, -1.0f,  0.0f,
@@ -132,13 +139,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glBufferData(GL_ARRAY_BUFFER, textureCoords.capacity() * 4, textureCoords, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        /* Load Textures */
-        canvasTextureId = CanvasUtils.makeTexture(restoreBitmap, PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE);
-        if (restoreBitmap != null) {
-            restoreBitmap = null;
-        }
-        canvasMaskId = CanvasUtils.makeTexture(null, 8, 8);
-
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         /* Create the brush */
@@ -150,6 +150,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         }
         brush.setSize(settings.getFloat("BRUSH_SIZE", 1.0f));
         brush.setColor(settings.getInt("BRUSH_COLOR", 0x000000ff));
+        brush.setDabSteps(settings.getInt("BRUSH_DABS", 45));
 
         glEnable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
@@ -169,7 +170,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
             willClear = false;
         }
 
-        // Camera Matrix Setup
+        // Setup the projection matrix and get the zoom level uniform identifier
         projectionMatrixHandle = glGetUniformLocation(programId, "uProjMatrix");
         glUniformMatrix4fv(projectionMatrixHandle, 1, false,
                 projectionMatrix, 0);
@@ -179,15 +180,13 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         if (!canAutosave && drawQueue.size() > 0)
             canAutosave = true;
 
+        /* This is where all the brush marks are drawn to the framebuffer */
         brush.drawQueue(drawQueue);
-
 
         glUseProgram(programId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        /* Draw Canvas */
-
-
+        /* Draw the framebuffer to the screen */
 
         // Set canvas zoom level
         glUniform1f(zoomHandle, canvasZoom);
@@ -199,7 +198,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, canvasMaskId);
         glUniform1i(glGetUniformLocation(programId, "uMask"), 1);
-
 
         // Enable the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, canvasVerticesBuffer);
@@ -214,7 +212,6 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         glEnableVertexAttribArray(aTextureCoord);
         glVertexAttribPointer(aTextureCoord, 2, GL_FLOAT, false, 0, 0);
 
-
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         /* Unbind everything */
@@ -227,24 +224,29 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         // Adjust camera/rendering parameters
         glViewport(0, 0, width, height);
 
-        /* These lines would create an aspect ratio correct square. */
         float aspectRatio = (float) height / width;
-        //Matrix.orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1-aspectRatio, 1+aspectRatio, -1, 1);
         Matrix.orthoM(projectionMatrix, 0, -1.0f, 1.0f, -aspectRatio, aspectRatio, -1f, 1f);
 
-        //Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -1f, 1f, -1, 1);
+        /* Load Textures */
+        if (width <= textureSize / 2 && height <= textureSize / 2)
+            textureSize /= 2; // Half textureSize if we can to save memory
+        canvasTextureId = CanvasUtils.makeTexture(restoreBitmap, textureSize, textureSize);
+        if (restoreBitmap != null) {
+            restoreBitmap = null;
+        }
+        canvasMaskId = CanvasUtils.makeTexture(null, 8, 8);
 
-        /* Send the canvas vertices to the GPU */
+        /* Send the canvas polygon's vertices to the GPU */
         FloatBuffer vertices = ByteBuffer.allocateDirect(canvasVerticesData.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
-        float l = 2f*PaintPaint.TEXTURE_SIZE/width;
-        float h = 2f*PaintPaint.TEXTURE_SIZE*aspectRatio/height;
+        float l = 2f*textureSize/width;
+        float h = 2f*textureSize*aspectRatio/height;
         vertices.put(new float[]{
-                -1.0f,       -aspectRatio,        0f,
-                l-1,         -aspectRatio,        0f,
-                -1.0f,       h-aspectRatio, 0f,
-                l-1,         h-aspectRatio, 0f})
+                -1.0f,     -aspectRatio,   0f,
+                l - 1,     -aspectRatio,   0f,
+                -1.0f,  h - aspectRatio,   0f,
+                l - 1,  h - aspectRatio,   0f})
             .position(0);
         int[] buffer = new int[1];
         glGenBuffers(1, buffer, 0);
@@ -294,7 +296,7 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
      */
     public void setCanvasBitmap(Bitmap bitmap) {
         restoreBitmap = bitmap;
-        int newTexture = CanvasUtils.makeTexture(bitmap, PaintPaint.TEXTURE_SIZE, PaintPaint.TEXTURE_SIZE);
+        int newTexture = CanvasUtils.makeTexture(bitmap, textureSize, textureSize);
         if (canvasTextureId != 0)
             glDeleteTextures(1, new int[]{canvasTextureId}, 0);
         canvasTextureId = newTexture;
@@ -347,11 +349,14 @@ public class CanvasRenderer implements GLSurfaceView.Renderer {
         drawQueue.offer(new CanvasDab(offsetX, offsetY, p, newEvent));
     }
 
+    /* Sets a flag that tells the renderer to clear the canvas to the background
+     * color. */
+    public void clear() {
+        willClear = true;
+    }
+
     public CanvasBrush getBrush() {
         return brush;
     }
 
-    public void clear() {
-        willClear = true;
-    }
 }

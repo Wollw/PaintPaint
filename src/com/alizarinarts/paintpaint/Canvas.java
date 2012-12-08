@@ -13,7 +13,6 @@ import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 
 import android.graphics.Bitmap;
-
 import android.graphics.Bitmap.CompressFormat;
 
 import android.util.Log;
@@ -22,7 +21,8 @@ import android.util.Log;
  * This class represents the drawing aspects of the CanvasActivity and serves to
  * keep the layout of the class and menus separate from the drawing function.
  *
- * Note: The entire Canvas design needs rethinking.
+ * Note: The entire Canvas design needs rethinking.  Is this class even
+ * needed? Too much abstraction?
  * 
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
@@ -58,6 +58,10 @@ public class Canvas {
         return mRenderer;
     }
 
+    public CanvasBrush getBrush() {
+        return mRenderer.getBrush();
+    }
+
     /**
      * Capture the canvas as a Bitmap.
      */
@@ -71,16 +75,19 @@ public class Canvas {
      * @param saveDir The directory to save the file in.
      * @param fileName The name to save the canvas as.
      */
-    public void saveCanvas(String saveDir, String fileName) {
+    public void save(String saveDir, String fileName) {
+        /* Make sure we make a valid Bitmap */
         if (mRenderer == null) {
-            Log.d(PaintPaint.NAME, "Renderer is null!");
+            Log.e(PaintPaint.NAME, "Renderer is null!");
             return;
         }
-
         Bitmap b = mRenderer.getCanvasBitmap();
-        if (b == null)
+        if (b == null) {
+            Log.e(PaintPaint.NAME, "Couldn't get bitmap to save!");
             return; // return early if we didn't get a bitmap
+        }
 
+        /* Attempt to write the Bitmap to storage */
         try {
             File dir = new File(saveDir+"/");
             dir.mkdirs();
@@ -103,10 +110,9 @@ public class Canvas {
         }
     }
 
-    public CanvasBrush getBrush() {
-        return mRenderer.getBrush();
-    }
-
+    /**
+     * Clears the canvas to the background color.
+     */
     public void clear() {
         mRenderer.clear();
     }

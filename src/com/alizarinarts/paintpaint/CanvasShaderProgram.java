@@ -13,6 +13,9 @@ import static android.opengl.GLES20.*;
 import android.util.Log;
 
 /**
+ * A class used to group the GLSL shaders and compiled program together.
+ * Handles the compilation of shaders into a program.
+ *
  * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
  */
 public class CanvasShaderProgram {

@@ -66,12 +66,13 @@ public class OpenFileActivity extends SherlockActivity {
             aa = new ArrayAdapter<String>(this,
                  android.R.layout.simple_list_item_1, new String[]{"No files found."}); 
         }
+
         ListView lv = (ListView) findViewById(R.id.fileList);
         lv.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent i = new Intent(OpenFileActivity.this, CanvasActivity.class);
                 i.putExtra("openFile", ((TextView)v).getText()+".png");
-                startActivity(i);
+                startActivity(i); // Launch the canvas and pass it a filename to open.
             }
         });
         lv.setAdapter(aa);

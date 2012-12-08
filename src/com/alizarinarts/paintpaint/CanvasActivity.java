@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import android.net.Uri;
+
 import android.os.Bundle;
 import android.os.Environment;
 
@@ -25,7 +26,6 @@ import android.util.Log;
 import android.view.View;
 
 import android.widget.EditText;
-
 import android.widget.SeekBar;
 
 /**
@@ -36,12 +36,8 @@ import android.widget.SeekBar;
  */
 public class CanvasActivity extends SherlockActivity {
 
-    /** The representation of the drawing surface. */
     private Canvas mCanvas;
-
-    /** The save path for image saving. */
     private String mSavePath;
-
     private String openFile;
 
     @Override
@@ -66,14 +62,16 @@ public class CanvasActivity extends SherlockActivity {
     protected void onResume() {
         super.onResume();
 
+        /* openFile is the filename provided when the user selects an image from
+         * the OpenActivity activity.  If they didn't the last canvas state
+         * will be loaded instead. */
         final String fileName;
         if (openFile != null)
             fileName = openFile;
         else
             fileName = PaintPaint.AUTOSAVE;
 
-        Log.d(PaintPaint.NAME,"onResume: " + fileName);
-
+        /* Reload the last image worked on */
         mCanvas.getSurfaceView().onResume();
         Log.d(PaintPaint.NAME, mSavePath+fileName);
         final File file = new File(mSavePath, fileName);
@@ -97,7 +95,7 @@ public class CanvasActivity extends SherlockActivity {
 
         /* This should get moved to the SurfaceView onPause method. */
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvas(mSavePath, PaintPaint.AUTOSAVE);
+            mCanvas.save(mSavePath, PaintPaint.AUTOSAVE);
         }});
 
         mCanvas.getSurfaceView().onPause();
@@ -117,7 +115,7 @@ public class CanvasActivity extends SherlockActivity {
      */
     public void onClickShare(MenuItem mi) {
         mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.saveCanvas(mSavePath, PaintPaint.AUTOSAVE);
+            mCanvas.save(mSavePath, PaintPaint.AUTOSAVE);
             File file = new File(mSavePath+PaintPaint.AUTOSAVE);
             Intent intent = new Intent(android.content.Intent.ACTION_SEND);
             intent.setType("image/png");
@@ -146,7 +144,7 @@ public class CanvasActivity extends SherlockActivity {
                     final String fileName = input.getText().toString()+".png";
                     Log.d(PaintPaint.NAME,"saving: "+fileName);
                     mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-                        mCanvas.saveCanvas(mSavePath, fileName);
+                        mCanvas.save(mSavePath, fileName);
                     }});
                 }
         });
@@ -165,6 +163,8 @@ public class CanvasActivity extends SherlockActivity {
      * Opens the settings window for the brush.
      */
     public void onClickBrushSettings(MenuItem mi) {
+
+        // Make sure the Brush is available for editing.
         if (mCanvas.getBrush() == null)
             return;
 
@@ -174,25 +174,33 @@ public class CanvasActivity extends SherlockActivity {
 
         final View v = getLayoutInflater().inflate(R.layout.dialog_brush_settings, null);
 
-        /* Setup the initial seekbar state based on the current settings */
+        /* Size slider */
         SeekBar sb = (SeekBar)v.findViewById(R.id.brush_setting_size);
         sb.setProgress((int)(mCanvas.getBrush().getSize()));
+
+        /* Color sliders */
         sb = (SeekBar)v.findViewById(R.id.brush_setting_red);
         sb.setProgress((mCanvas.getBrush().getColor()&0xff000000)>>>24);
         sb = (SeekBar)v.findViewById(R.id.brush_setting_green);
         sb.setProgress((mCanvas.getBrush().getColor()&0xff0000)>>>16);
         sb = (SeekBar)v.findViewById(R.id.brush_setting_blue);
         sb.setProgress((mCanvas.getBrush().getColor()&0xff00)>>>8);
-
+        
+        /* Steps between brush dabs to interpolate*/
+        sb = (SeekBar)v.findViewById(R.id.brush_setting_dabs);
+        sb.setProgress((mCanvas.getBrush().getDabSteps()));
 
         alert.setView(v);
 
         final SharedPreferences settings = getPreferences(0);
 
+        /* Set and save settings when the user clicks Done */
         alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     final float size = ((SeekBar)v.findViewById(R.id.brush_setting_size)).getProgress();
                     mCanvas.getBrush().setSize(size);
+                    final int dabs = ((SeekBar)v.findViewById(R.id.brush_setting_dabs)).getProgress();
+                    mCanvas.getBrush().setDabSteps(dabs);
                     int color = ((SeekBar)v.findViewById(R.id.brush_setting_red)).getProgress()<<24;
                     color    |= ((SeekBar)v.findViewById(R.id.brush_setting_green)).getProgress()<<16;
                     color    |= ((SeekBar)v.findViewById(R.id.brush_setting_blue)).getProgress()<<8;
@@ -203,10 +211,12 @@ public class CanvasActivity extends SherlockActivity {
                     SharedPreferences.Editor edit = settings.edit();
                     edit.putFloat("BRUSH_SIZE", size);
                     edit.putInt("BRUSH_COLOR", color);
+                    edit.putInt("BRUSH_DABS", dabs);
                     edit.commit();
                 }
         });
 
+        /* Do nothing if the user clicks Cancel */
         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 // Canceled

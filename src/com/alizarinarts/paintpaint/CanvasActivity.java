@@ -231,10 +231,29 @@ public class CanvasActivity extends SherlockActivity {
      * Clears the canvas.
      */
     public void onClickClearCanvas(MenuItem mi) {
-        mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
-            mCanvas.clear();
-        }});
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Clear Canvas?");
+
+        /* Do nothing if the user clicks Cancel */
+        alert.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                mCanvas.getSurfaceView().queueEvent(new Runnable() {public void run() {
+                    mCanvas.clear();
+                }});
+            }
+        });
+
+        /* Do nothing if the user clicks Cancel */
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled
+            }
+        });
+
+        alert.show();
     }
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem mi) {
         switch (mi.getItemId()) {

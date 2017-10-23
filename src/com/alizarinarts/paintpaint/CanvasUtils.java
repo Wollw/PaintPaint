@@ -13,7 +13,7 @@ import android.opengl.GLUtils;
 /**
  * Commonly used utilities for rendering and maintaining the canvas.
  *
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  * @version 1.0
  */
 public class CanvasUtils {

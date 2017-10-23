@@ -12,7 +12,7 @@ import android.view.View;
  * with the choice between opening an existing image to edit or creating a new
  * image with a blank canvas.
  *
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  */
 public class MainMenuActivity extends SherlockActivity {
 

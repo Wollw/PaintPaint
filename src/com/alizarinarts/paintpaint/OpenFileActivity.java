@@ -29,7 +29,7 @@ import android.widget.TextView;
  * Create a ListView of all the files that can be opened for editing.  When an
  * item is selected it will open that image in the CanvasActivity.
  *
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  */
 public class OpenFileActivity extends SherlockActivity {
 

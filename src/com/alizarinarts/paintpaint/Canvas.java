@@ -24,7 +24,7 @@ import android.util.Log;
  * Note: The entire Canvas design needs rethinking.  Is this class even
  * needed? Too much abstraction?
  * 
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  */
 public class Canvas {
 

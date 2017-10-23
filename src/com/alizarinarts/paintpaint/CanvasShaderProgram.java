@@ -16,7 +16,7 @@ import android.util.Log;
  * A class used to group the GLSL shaders and compiled program together.
  * Handles the compilation of shaders into a program.
  *
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  */
 public class CanvasShaderProgram {
 

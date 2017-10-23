@@ -14,7 +14,7 @@ import android.view.MotionEvent;
  *
  * This class is the Android View used to display and interact with the canvas.
  * 
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  */
 public class CanvasGLSurfaceView extends GLSurfaceView {
 

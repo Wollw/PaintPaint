@@ -17,7 +17,7 @@ import android.util.Log;
  * These include the methods used for drawing brush strokes as well as all the
  * size and color information associated with the brush.
  *
- * @author <a href="mailto:david.e.shere@gmail.com">David Shere</a>
+ * @author <a href="mailto:rose.e.shere@gmail.com">Rose Shere</a>
  * @version 1.0
  */
 public class CanvasBrush {
